@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<title>Team Tools</title>
+<!--
+  app-id:    index
+  version:   0.1.0
+  owner:     lyondsgn
+  purpose:   Launcher for every team widget. Works on GitHub Pages and as a Quickbase code page.
+  uses:      none
+  externals: Google Fonts (system-font fallback)
+  qb-tables: none
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#eef0f2; --surface:#fbfcfc; --ink:#1b2227; --muted:#5a6670; --line:#d5dbdf; --grid:#e3e7ea;
+  --accent:#1d5c96; --ok:#2c7a4b; --warn:#a8690f;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
+  --accent:#6aa9e6; --ok:#5cc28a; --warn:#e0a43a; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
+  --accent:#6aa9e6; --ok:#5cc28a; --warn:#e0a43a; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 var(--f-body);
+  padding:calc(24px + env(safe-area-inset-top,0px)) 16px calc(48px + env(safe-area-inset-bottom,0px))}
+.wrap{max-width:960px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px}
+h1{font:600 2rem/1 var(--f-display);letter-spacing:.01em;margin:0}
+h2{font:600 1.35rem/1.1 var(--f-display);letter-spacing:.02em;margin:0}
+.sub{color:var(--muted);margin:6px 0 0;max-width:60ch}
+.env{font:600 11px var(--f-body);letter-spacing:.07em;text-transform:uppercase;border:1px solid currentColor;border-radius:999px;padding:2px 9px;white-space:nowrap}
+.env.proto{color:var(--warn)} .env.prod{color:var(--ok)}
+
+.search{width:100%;font:15px var(--f-body);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:11px 12px;min-height:44px}
+.search:focus-visible,.card:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+.list{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin:0;padding:0;list-style:none}
+.card{display:flex;flex-direction:column;gap:8px;height:100%;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:16px;color:inherit;text-decoration:none;min-height:44px}
+.card:hover{border-color:var(--accent)}
+.card p{margin:0;color:var(--muted);font-size:13.5px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto;padding-top:8px}
+.tag{font:500 11px var(--f-mono);color:var(--muted);background:var(--bg);border:1px solid var(--grid);border-radius:4px;padding:1px 6px}
+.tag.status{color:var(--accent);border-color:currentColor;background:transparent}
+.open{font:500 13px var(--f-body);color:var(--accent)}
+.empty{color:var(--muted);text-align:center;padding:24px 0}
+footer{color:var(--muted);font-size:12px;border-top:1px solid var(--grid);padding-top:14px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Team Tools</h1>
+      <p class="sub">Field and engineering widgets. Tap a tool to open it.</p>
+    </div>
+    <span class="env" id="env"></span>
+  </header>
+
+  <input class="search" id="q" type="search" placeholder="Search tools" aria-label="Search tools" autocomplete="off">
+  <ul class="list" id="list"></ul>
+  <p class="empty" id="empty" hidden>No tools match.</p>
+
+  <footer id="foot"></footer>
+</div>
+
+<script>
+// ---- registry: add one entry per app (see APP_RULES.md §2) ----
+const APPS = [
+  {
+    id: 'mixer-drum-torque',
+    name: 'Mixer Drum Torque Calculator',
+    file: 'DrumPhysics/mixer-drum-torque-calculator.html',
+    desc: 'Drum load to hydraulic pressure and flow, then back to the diesel or electric power unit needed to drive it.',
+    status: 'Prototype',
+    features: ['calculator'],
+  },
+];
+
+// ---- environment + links (copy this block into any app that links elsewhere) ----
+const ON_QB = /\.quickbase\.com$/i.test(location.hostname);
+// GitHub: relative path. Quickbase: flat code-page name, so only the file name matters.
+function appUrl(file){
+  return ON_QB ? '?a=dbpage&pagename=' + encodeURIComponent(file.split('/').pop()) : file;
+}
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+const env = $('env');
+env.textContent = ON_QB ? 'Quickbase' : 'Prototype';
+env.className = 'env ' + (ON_QB ? 'prod' : 'proto');
+$('foot').textContent = ON_QB
+  ? APPS.length + ' tools'
+  : APPS.length + ' tools · prototype on GitHub Pages. Nothing here saves to Quickbase; use sample data only.';
+
+function render(){
+  const q = $('q').value.trim().toLowerCase();
+  const hits = APPS.filter(a => !q || [a.name, a.desc, a.status, ...(a.features||[])].join(' ').toLowerCase().includes(q));
+  $('list').innerHTML = hits.map(a => `
+    <li><a class="card" href="${esc(appUrl(a.file))}">
+      <h2>${esc(a.name)}</h2>
+      <p>${esc(a.desc)}</p>
+      <div class="meta">
+        <span class="tag status">${esc(a.status)}</span>
+        ${(a.features||[]).map(f => `<span class="tag">${esc(f)}</span>`).join('')}
+      </div>
+      <span class="open">Open →</span>
+    </a></li>`).join('');
+  $('empty').hidden = hits.length > 0;
+}
+$('q').addEventListener('input', render);
+render();
+</script>
+</body>
+</html>
