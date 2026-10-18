@@ -37,9 +37,10 @@ Anything that relies on the left column only (relative files, folders, a backend
    Confirm with the Quickbase admin that the realm allows external scripts before relying on one in prod.
    Google Fonts stylesheets are OK as long as a system-font fallback is in the CSS stack.
 8. **No** service workers, web app manifests, cookies, `iframe`s of other sites, or `window.open` popups as a required step.
-9. **Every page** includes, in `<head>`:
+9. **Every page** includes, at the top of `<head>`:
    ```html
    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+   <meta name="referrer" content="no-referrer">
    ```
 
 ## 2. Navigation (MUST)
@@ -100,7 +101,7 @@ Anything that relies on the left column only (relative files, folders, a backend
 
 17. **No secrets, ever:** no Quickbase user tokens, app tokens, API keys, passwords, realm-specific dbids for sensitive apps, or internal URLs in the code or commit history.
 18. **No real data** in the repo: no customer names, employee names, job/site addresses, real photos, or pricing. Use obviously fake sample data.
-19. A client-side password prompt is **not** security. Don't add one and don't describe it as protection.
+19. A client-side password prompt or link key is **not** security. Don't add one and don't describe it as protection.
 20. Photos can carry GPS in EXIF. When photos are re-encoded through a canvas (rule 22), the metadata is stripped. Keep it that way unless location is an explicit requirement.
 
 ## 6. Feature recipes (use these patterns)
@@ -136,24 +137,42 @@ Anything that relies on the left column only (relative files, folders, a backend
     ```
     File names: `<app-id>_<YYYY-MM-DD>_<short-label>.<ext>`, no spaces.
 
-## 7. UI rules (SHOULD)
+## 7. Desktop + mobile (MUST)
 
-28. **Mobile first.** Must work at 360 px wide with no horizontal scroll; tap targets ≥ 44 px; readable in sunlight (strong contrast); usable with gloves (no tiny controls, no hover-only info).
-29. Colors as CSS custom properties on `:root`, with a dark-mode override under `@media (prefers-color-scheme: dark)`. Give `body` an explicit background.
-30. Include a "← All tools" link built with `appUrl('index.html')`.
-31. Show which environment you're on (small "Prototype" badge when `!ON_QB`) so nobody mistakes the prototype for the system of record.
+Every app is used on **both** an office desktop and a phone on site. Neither is an afterthought.
 
-## 8. Definition of done (checklist before merging)
+28. **Widths to support:** 360 px (small phone) up to 1440 px+ (desktop). No horizontal page scroll at any width. Test at **360, 390, 768, 1280**, and in phone landscape.
+29. **One responsive layout, not two apps.** Use CSS grid/flex with `minmax(0,1fr)` and one main breakpoint around **860 px**: side-by-side above it, single column below. Cap content width on desktop (`max-width` ~1180 px) so lines don't stretch.
+30. **Keep results in view on phones.** If inputs and results sit in separate areas, the phone layout must show the key results while editing, using a sticky summary bar (see the calculator's `.mbar`) or by placing results directly beside each input.
+31. **Touch rules** (apply under `@media (pointer:coarse)`):
+    - tap targets ≥ 44 × 44 px (inputs, buttons, checkboxes, `<summary>`), with ≥ 8 px between them;
+    - **inputs, selects and textareas at `font-size:16px` or larger**, or iOS Safari zooms the page on focus;
+    - numeric fields use `type="number" inputmode="decimal"` so the number pad opens.
+32. **Nothing hover-only.** Anything shown on hover (tooltips, chart readouts) must also work by tap: handle `pointerdown`/`click`, not just `pointermove`/`mouseover`. Wording follows the device: "Hover" on desktop, "Tap" on touch (`@media (hover:none)`).
+33. **Charts and SVGs:** size from the container (`ResizeObserver`), `width:100%; height:auto`, with fewer ticks and labels when narrow. Use `touch-action:pan-y` on interactive charts so the page still scrolls. Floating readouts are clamped inside their box.
+34. **Tables:** wrap in `overflow-x:auto` *and* hide non-essential columns under the breakpoint. Better still, for short tables, switch to stacked label/value rows on phones.
+35. **Safe areas:** `viewport-fit=cover` plus `env(safe-area-inset-*)` padding so nothing sits under the notch or home bar; sticky bars offset by `env(safe-area-inset-top)`.
+36. **Field conditions:** strong contrast (readable in sunlight), large primary numbers, no tiny controls (usable with gloves), no essential info in color alone.
+37. **Desktop niceties still count:** keyboard focus rings (`:focus-visible`), Enter/Tab flow through inputs, readable at 100% zoom without a giant phone layout stretched across the screen.
+
+## 8. Other UI rules (SHOULD)
+
+38. Colors as CSS custom properties on `:root`, with a dark-mode override under `@media (prefers-color-scheme: dark)`. Give `body` an explicit background.
+39. Include a "← All tools" link built with `appUrl('index.html')`.
+40. Show which environment you're on (small "Prototype" badge when `!ON_QB`) so nobody mistakes the prototype for the system of record.
+
+## 9. Definition of done (checklist before merging)
 
 - [ ] Single `.html`, kebab-case unique name, header comment filled in
-- [ ] `noindex` meta present
+- [ ] `noindex` + `no-referrer` meta present
 - [ ] Opens correctly by **double-clicking the file locally** (`file://`). If it works there, it has no hidden file dependencies
 - [ ] Opens from the GitHub Pages URL **on a phone**; camera/download features tested on iOS Safari and Android Chrome
+- [ ] Desktop + mobile (§7): no sideways scroll at 360 px; key results visible while editing on a phone; tapping an input doesn't zoom; every hover readout also works by tap; looks right at 1280 px
 - [ ] No console errors; works with `localStorage` cleared
 - [ ] All saves go through `saveReport()`; no tokens or real data in the diff
 - [ ] Registered in `index.html` `APPS`
 
-## 9. Moving an app to Quickbase (for later)
+## 10. Moving an app to Quickbase (for later)
 
 1. Quickbase app → **Settings → Pages → New Page → Code page**.
 2. Page name = the exact file name (e.g. `mixer-drum-torque-calculator.html`). Paste the whole file. Save.
