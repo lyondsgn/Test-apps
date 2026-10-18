@@ -1,0 +1,728 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Mixer Drum Torque Calculator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: inputs rail on the left; on the right the answer first (power unit), then gauge + drum, cycle chart, and a collapsed table of every value */
+:root{
+  --bg:#eef0f2; --surface:#fbfcfc; --ink:#1b2227; --muted:#5a6670; --line:#d5dbdf; --grid:#e3e7ea;
+  --accent:#1d5c96; --load:#1f7f74; --fric:#6f7b85; --inertia:#a8690f;
+  --ok:#2c7a4b; --warn:#a8690f; --bad:#b42318; --conc:#a9a294; --conc-edge:#867f71; --shell:#3a444c;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
+  --accent:#6aa9e6; --load:#4fbcae; --fric:#8d99a3; --inertia:#e0a43a;
+  --ok:#5cc28a; --warn:#e0a43a; --bad:#f07360; --conc:#6f6a61; --conc-edge:#8c867b; --shell:#b9c3ca; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
+  --accent:#6aa9e6; --load:#4fbcae; --fric:#8d99a3; --inertia:#e0a43a;
+  --ok:#5cc28a; --warn:#e0a43a; --bad:#f07360; --conc:#6f6a61; --conc-edge:#8c867b; --shell:#b9c3ca; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;line-height:1.45;padding-inline:16px;padding-block:24px 48px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:20px}
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px}
+h1{font-family:var(--f-display);font-weight:600;font-size:2rem;letter-spacing:.01em;margin:0;line-height:1;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:1.25rem;margin:0;letter-spacing:.02em}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+.btn{font:500 13px var(--f-body);color:var(--accent);background:transparent;border:1px solid var(--line);border-radius:4px;padding:6px 12px;cursor:pointer}
+.btn:hover{border-color:var(--accent)}
+.btn:focus-visible,input:focus-visible,select:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+[data-v]{cursor:help}
+
+.grid{display:grid;grid-template-columns:minmax(250px,290px) minmax(0,1fr);gap:20px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:minmax(0,1fr)}}
+
+.rail{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 16px;display:flex;flex-direction:column;gap:20px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;min-width:0}
+legend,.gtitle{font:600 12px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding:0;margin-bottom:8px}
+.fields{display:flex;flex-direction:column;gap:7px}
+.field{display:grid;grid-template-columns:minmax(0,1fr) 84px 42px;align-items:center;gap:6px}
+.field label{font-size:13px;min-width:0}
+.field input,.field select{width:100%;font:500 13px var(--f-mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:5px 6px;text-align:right;font-variant-numeric:tabular-nums}
+.field select{grid-column:2 / 4;text-align:left;font-family:var(--f-body)}
+.field input:disabled{color:var(--muted);border-style:dotted}
+.unit{font-size:12px;color:var(--muted)}
+.check{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted)}
+.check input{margin:0;accent-color:var(--accent)}
+details summary{cursor:pointer;list-style:none;display:flex;align-items:center;gap:6px;margin:0}
+details summary::-webkit-details-marker{display:none}
+details summary::before{content:"▸";color:var(--muted);font-size:12px;transition:transform .15s}
+details[open] summary::before{transform:rotate(90deg)}
+.note{font-size:12px;color:var(--muted);margin:8px 0 10px}
+
+.main{display:flex;flex-direction:column;gap:20px;min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px;min-width:0}
+.k{font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center}
+.s{font-size:12.5px;color:var(--muted)}
+.cap{font-size:12.5px;color:var(--muted);margin:12px 0 0;max-width:80ch}
+
+/* power unit */
+.spec{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px 32px;margin-top:14px}
+.big{font:600 3.4rem/1 var(--f-display);font-variant-numeric:tabular-nums;margin:4px 0 6px}
+.big small,.v small{font:500 .95rem var(--f-body);color:var(--muted);margin-left:4px}
+.chain{display:flex;flex-wrap:wrap;align-items:stretch;gap:6px 0;margin-top:20px;padding-top:16px;border-top:1px solid var(--grid)}
+.stage{display:flex;flex-direction:column;gap:1px;min-width:0}
+.stage b{font:600 1.35rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.stage b small{font:500 .8rem var(--f-body);color:var(--muted);margin-left:2px}
+.stage span{font-size:12px;color:var(--muted)}
+.loss{display:flex;flex-direction:column;justify-content:center;align-items:center;padding:0 14px;font:11px/1.35 var(--f-mono);color:var(--muted);text-align:center}
+.loss::after{content:"→";font-size:14px}
+@media (max-width:640px){.chain{flex-direction:column}.loss{flex-direction:row;gap:8px;padding:2px 0;justify-content:flex-start}.loss::after{content:"↓";order:-1}}
+
+/* simulator: drum with the gauge tucked into its top-right corner, cycle chart alongside */
+.simgrid{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.sim{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:8px 40px}
+#drum{width:270px;max-width:100%;height:auto;display:block}
+#drum text{paint-order:stroke;stroke:var(--surface);stroke-width:3px;stroke-linejoin:round}
+#gauge{width:150px;height:auto;display:block}
+.gside{display:flex;flex-direction:column;align-items:center;gap:10px}
+#gauge text{font-family:var(--f-mono);fill:var(--muted)}
+.gctl{display:flex;flex-direction:column;align-items:center;gap:6px}
+.chartcol{min-width:0}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:16px 24px;padding-bottom:18px;border-bottom:1px solid var(--grid)}
+.v{font:600 1.75rem/1.1 var(--f-display);font-variant-numeric:tabular-nums}
+.pill{font:600 10.5px var(--f-body);letter-spacing:.06em;text-transform:uppercase;border-radius:999px;padding:1px 7px;white-space:nowrap;border:1px solid currentColor}
+.pill.ok{color:var(--ok)} .pill.warn{color:var(--warn)} .pill.bad{color:var(--bad)}
+.notes{margin-top:16px;padding-top:14px;border-top:1px solid var(--grid)}
+.notes summary{font-size:13px;color:var(--muted)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--ok)}
+.dot.warn{background:var(--warn)} .dot.bad{background:var(--bad)}
+.checks{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:7px;font-size:13px;max-width:82ch}
+.checks li{display:grid;grid-template-columns:10px 1fr;gap:10px;align-items:baseline}
+.checks li::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok);transform:translateY(-1px)}
+.checks li.warn::before{background:var(--warn)} .checks li.bad::before{background:var(--bad)}
+
+.chead{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px;margin-bottom:8px}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{display:inline-block;width:18px;height:0;border-top:2px solid}
+.chartbox{position:relative}
+#chart{display:block;width:100%;height:auto;touch-action:pan-y}
+#chart text{font-family:var(--f-mono);font-size:10.5px;fill:var(--muted)}
+#chart .ttl{font-family:var(--f-body);font-size:11px;fill:var(--muted)}
+#tip,#vtip{pointer-events:none;background:var(--surface);border:1px solid var(--line);border-radius:6px;color:var(--ink);box-shadow:0 4px 14px rgba(0,0,0,.14)}
+#tip{position:absolute;padding:6px 8px;font:11.5px/1.5 var(--f-mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+#vtip{position:fixed;z-index:10;padding:10px 12px;width:max-content;max-width:min(380px,calc(100vw - 24px));font-size:12.5px;line-height:1.45}
+#vtip code{font:11px var(--f-mono);color:var(--muted);margin-left:6px}
+#vtip p{margin:4px 0 0;color:var(--muted)}
+#vtip .eq{font:11.5px/1.5 var(--f-mono);margin-top:6px;padding-top:6px;border-top:1px solid var(--grid);overflow-wrap:anywhere}
+#vtip .eq div{padding-left:1.2em;text-indent:-1.2em}
+
+.tablewrap{overflow-x:auto;margin-top:12px}
+table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:5px 8px;border-bottom:1px solid var(--grid);vertical-align:baseline}
+thead th{font-size:12px;color:var(--muted);font-weight:500}
+th.grp{font:600 12px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted);padding-top:16px;border-bottom:1px solid var(--line)}
+tbody tr[data-v]:hover{background:var(--bg)}
+td.var{font:12px var(--f-mono);color:var(--muted);white-space:nowrap}
+td.val{text-align:right;font:500 13px var(--f-mono);white-space:nowrap}
+td.u{color:var(--muted);font-size:12px;white-space:nowrap}
+</style>
+
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Mixer Drum Torque Calculator</h1>
+      <p class="sub">Drum load to hydraulic pressure and flow, then back through the pump to the engine or electric motor that has to drive it. Hover any label or number for its definition and calculation.</p>
+    </div>
+    <button class="btn" id="reset" type="button">Reset to example</button>
+  </header>
+
+  <div class="grid">
+    <form class="rail" id="form" autocomplete="off" onsubmit="return false">
+      <fieldset><legend>Batch &amp; drum</legend><div class="fields" id="g-drum"></div></fieldset>
+      <fieldset><legend>Hydraulic drive</legend><div class="fields" id="g-drive"></div>
+        <label class="check"><input type="checkbox" id="matched" checked> Size pump to the flow needed</label>
+      </fieldset>
+      <fieldset><legend>Cycle</legend><div class="fields" id="g-ramp"></div></fieldset>
+      <details>
+        <summary class="gtitle">Assumptions</summary>
+        <p class="note">Judgment values and efficiencies. Change them to test sensitivity.</p>
+        <div class="fields" id="g-assume"></div>
+      </details>
+    </form>
+
+    <div class="main">
+      <section class="panel">
+        <div class="stats">
+          <div><div class="k">Mixing pressure</div><div class="v"><span data-out="p_run_psi"></span><small>psi</small></div><div class="s">steady, at the pump line</div></div>
+          <div><div class="k">Peak pressure <span class="pill" id="pill-p"></span></div><div class="v"><span data-out="p_peak_psi"></span><small>psi</small></div><div class="s">relief set at <span data-out="p_relief_psi"></span> psi</div></div>
+          <div><div class="k">Flow needed <span class="pill" id="pill-q"></span></div><div class="v"><span data-out="Q_gpm"></span><small>gpm</small></div><div class="s">motor at <span data-out="motor_rpm"></span> rpm</div></div>
+          <div><div class="k">Peak torque at drum</div><div class="v"><span data-out="T_peak_Nm"></span><small>N·m</small></div><div class="s"><span data-out="T_peak_ftlb"></span> ft·lb · mixing <span data-out="T_run_Nm"></span> N·m</div></div>
+        </div>
+        <div class="simgrid">
+          <div>
+            <div class="sim">
+              <svg id="drum" viewBox="0 0 300 290" role="img" aria-label="Drum cross-section showing concrete lifted to the dynamic angle, its centre of gravity and lever arm"></svg>
+              <div class="gside">
+              <svg id="gauge" viewBox="0 4 240 224" role="img" aria-label="Simulated pressure gauge on the pump pressure line"></svg>
+            <div class="gctl">
+              <button class="btn" id="play" type="button">▶ Play cycle</button>
+              <span class="s" id="gstate"></span>
+            </div>
+              </div>
+            </div>
+          </div>
+          <div class="chartcol">
+            <div class="chead">
+              <h2>Torque over one cycle</h2>
+              <div class="legend">
+                <span><i style="border-color:var(--accent);border-top-width:3px"></i>Total</span>
+                <span><i style="border-color:var(--load);border-top-style:dashed"></i>Load</span>
+                <span><i style="border-color:var(--inertia);border-top-style:dashed"></i>Inertia</span>
+                <span><i style="border-color:var(--fric);border-top-style:dashed"></i>Friction</span>
+                <span><i style="border-color:var(--bad);border-top-style:dotted"></i>Relief</span>
+              </div>
+            </div>
+            <div class="chartbox" id="chartbox">
+              <svg id="chart" role="img" aria-label="Drum speed and drive torque over a start, mix, reverse, discharge and stop cycle"></svg>
+              <div id="tip" hidden></div>
+            </div>
+          </div>
+        </div>
+        <details class="notes">
+          <summary><span class="dot" id="notes-dot"></span><span id="notes-sum">Notes</span></summary>
+        <ul class="checks" id="checks"></ul>
+        <p class="cap">Play the cycle or hover the chart to drive the gauge and drum. Torque is signed: positive drives the mixing direction. Where it has the opposite sign to the speed the drum is driving the motor (overrun), and that pressure shows on the opposite motor port. The right-hand axis is pressure drop across the motor.</p>
+        </details>
+      </section>
+
+      <section class="panel">
+        <h2>Power unit required</h2>
+        <div class="spec">
+          <div>
+            <div class="k">Diesel engine, rated</div>
+            <div class="big"><span data-out="HP_diesel"></span><small>hp</small></div>
+            <div class="s"><span data-out="kW_diesel"></span> kW · carries the <span data-out="HP_shaft_peak"></span> hp peak and runs at <span id="eng-pct"></span>% load while mixing</div>
+          </div>
+          <div>
+            <div class="k">Electric motor, nameplate</div>
+            <div class="big"><span data-out="HP_elec_std"></span><small>hp</small></div>
+            <div class="s">480 V three-phase · <span data-out="A_fla"></span> A full load · about <span data-out="A_run"></span> A and <span data-out="kW_elec_in"></span> kW while mixing</div>
+          </div>
+        </div>
+        <div class="chain" id="chain"></div>
+        <p class="cap" id="chain-cap"></p>
+      </section>
+
+      <section class="panel">
+        <details>
+          <summary><h2>All values</h2></summary>
+          <div class="tablewrap"><table id="tbl"></table></div>
+        </details>
+      </section>
+    </div>
+  </div>
+</div>
+<div id="vtip" role="tooltip" hidden></div>
+
+<script>
+(function(){
+// ---- constants ----
+const C = {g:9.81, lb_to_kg:0.45359, in_to_m:0.0254, Nm_to_ftlb:0.73756, W_per_hp:745.7,
+  rpm_to_rads:2*Math.PI/60, bar_to_psi:14.504, L_per_gal:3.785, hp_hyd_k:1714};
+const NEMA=[1,1.5,2,3,5,7.5,10,15,20,25,30,40,50,60,75,100,125,150,200];
+
+// [group, id, default, step, min, max]. Values outside min…max are impossible or break the math, so read() clamps them.
+const FIELDS = [
+  ['g-drum','yd_conc',1.5,0.25,0.25,100],
+  ['g-drum','W_drum_lb',2000,50,1,1e6],
+  ['g-drum','D_drum_in',51,1,1,1000],
+  ['g-drum','rpm',20,1,1,200],
+  ['g-drive','motor_cc',34,1,1,1e5],
+  ['g-drive','gear_ratio',58,1,1,1e4],
+  ['g-drive','p_relief_psi',3300,50,100,1e4],
+  ['g-drive','Q_src_gpm',16.9,0.1,0.1,1e4],
+  ['g-ramp','t_ramp',3,0.5,0.5,600],
+  ['g-ramp','t_rev',3,0.5,0.5,600],
+  ['g-ramp','t_hold',6,1,1,600],
+  ['g-assume','rho_conc_lb',4000,50,1000,6000],
+  ['g-assume','theta_deg',35,1,1,89],
+  ['g-assume','k_cg',0.55,0.01,0.05,0.95],
+  ['g-assume','mu_roll',0.015,0.001,0,0.5],
+  ['g-assume','eff_gearbox',0.90,0.01,0.05,1],
+  ['g-assume','eff_motor_mech',0.90,0.01,0.05,1],
+  ['g-assume','eff_vol',0.95,0.01,0.05,1],
+  ['g-assume','p_loss_psi',100,10,0,5000],
+  ['g-assume','eff_pump',0.85,0.01,0.05,1],
+  ['g-assume','eff_elec',0.90,0.01,0.05,1],
+  ['g-assume','pf',0.85,0.01,0.05,1],
+  ['g-assume','elec_overload',1.5,0.05,1,3],
+  ['g-assume','eng_load',0.80,0.05,0.05,1],
+];
+
+// id: [label, unit, decimals (negative = up to), description, formula]. Formulas are shown on hover with the
+// variable names swapped for their current values, so each must mirror compute() exactly.
+const amps=hp=>`${hp} × 745.7 ÷ (√3 × volts × eff_elec × pf)`;
+const D = {
+  yd_conc:['Batch size','yd³',2,'Volume of concrete in the drum.'],
+  W_drum_lb:['Drum weight, empty','lb',0,'Weight of the bare drum shell, fins and track ring. It adds to roller load and to the inertia that has to be accelerated.'],
+  D_drum_in:['Drum diameter','in',1,'Diameter at the belly of the drum. Half of it is the radius used for the lever arm, the inertia and the roller track.'],
+  rpm:['Drum speed','rpm',1,'Drum speed while mixing. Discharge runs at the same speed in reverse.'],
+  motor_cc:['Motor displacement','cc/rev',1,'Oil the hydraulic motor takes per shaft revolution. Larger means more torque per psi and more flow per rpm.'],
+  gear_ratio:['Gear ratio',': 1',1,'Total reduction between the hydraulic motor shaft and the drum (gearbox times any chain or ring gear).'],
+  p_relief_psi:['Relief setting','psi',0,'Pressure at which the system relief valve opens. The pump line cannot go higher, so it caps both drum torque and the power the engine or motor can be asked for.'],
+  Q_src_gpm:['Pump flow','gpm',1,'Flow the pump delivers. With "Size pump to the flow needed" ticked this simply follows the flow needed; untick it to enter an existing pump.'],
+  t_ramp:['Start / stop ramp','s',1,'Time to bring the drum from rest to full speed, and from full speed back to rest. Shorter ramps need more torque.'],
+  t_rev:['Reverse time','s',1,'Time to go from full mixing speed to full discharge speed in the other direction.'],
+  t_hold:['Hold time shown','s',0,'How long the mix and discharge plateaus are drawn on the chart. It does not change any result.'],
+  volts:['Supply voltage','V',0,'Fixed at 480 V three-phase.'],
+  rho_conc_lb:['Concrete density','lb/yd³',0,'Weight of wet concrete per cubic yard. Normal-weight mixes run about 3,900 to 4,100.'],
+  theta_deg:['Dynamic angle θ','deg',1,'How far the concrete is carried up the drum wall before it tumbles back, measured from straight down. Stiffer mixes and faster drums carry higher. This is the least certain input.'],
+  k_cg:['CG radius ratio','× R',2,'Distance from the drum axis to the centre of gravity of the concrete, as a fraction of drum radius. Fuller drums pull it toward the axis.'],
+  mu_roll:['Rolling friction μ','–',3,'Rolling resistance of the drum on its support rollers, as a fraction of the weight carried.'],
+  eff_gearbox:['Gearbox efficiency','–',2,'Fraction of motor torque that reaches the drum through the reduction. Planetary boxes are roughly 0.90 to 0.95; worm drives much lower.'],
+  eff_motor_mech:['Motor mechanical eff.','–',2,'Fraction of theoretical torque the hydraulic motor delivers at its shaft. Lower at start-up than when turning.'],
+  eff_vol:['Motor volumetric eff.','–',2,'Fraction of the oil that turns the motor; the rest leaks past internally. It raises the flow needed.'],
+  p_loss_psi:['Line and return loss','psi',0,'Pressure lost in hoses, valves and the return line between pump and tank. The pump-line gauge reads the motor pressure drop plus this.'],
+  eff_pump:['Pump overall efficiency','–',2,'Hydraulic power out of the pump divided by shaft power in. Gear pumps roughly 0.80 to 0.85, piston pumps 0.88 to 0.92.'],
+  eff_elec:['Electric motor efficiency','–',2,'Shaft power out divided by electrical power in. Take it from the motor nameplate.'],
+  pf:['Power factor','–',2,'Electric motor power factor at load, from the nameplate. It raises current without raising real power.'],
+  elec_overload:['Electric short-term overload','×',2,'How far above nameplate an electric motor may be pushed for the few seconds of a start or reversal. Standard induction motors tolerate about 1.5×.'],
+  eng_load:['Engine continuous load','–',2,'Largest share of rated engine power to use continuously. Engines cannot be overloaded even briefly, so 0.80 is a common ceiling.'],
+
+  m_conc_lb:['Concrete weight','lb',0,'Weight of the batch.','yd_conc × rho_conc_lb'],
+  m_conc_kg:['Concrete mass','kg',0,'Batch mass in SI units.','m_conc_lb × 0.45359'],
+  W_conc_N:['Concrete weight (force)','N',0,'Gravity force on the batch.','m_conc_kg × 9.81'],
+  m_drum_kg:['Drum mass','kg',0,'Empty drum mass in SI units.','W_drum_lb × 0.45359'],
+  W_total_N:['Total on rollers','N',0,'Drum plus concrete, carried by the support rollers.','(m_conc_kg + m_drum_kg) × 9.81'],
+  R_m:['Drum radius','m',4,'Half the drum diameter.','D_drum_in × 0.0254 ÷ 2'],
+  omega:['Angular speed','rad/s',3,'Drum speed in radians per second.','rpm × 2π ÷ 60'],
+  v_rim_fpm:['Rim speed','ft/min',0,'Surface speed of the drum shell.','omega × R_m × 196.85'],
+  r_cg:['CG radius','m',4,'Distance from drum axis to the concrete centre of gravity.','k_cg × R_m'],
+  lever_m:['Lever arm','m',4,'Horizontal offset of the concrete centre of gravity from the drum axis once it is carried up to the dynamic angle. Gravity acts on this arm.','r_cg × sin(theta_deg°)'],
+  T_load_Nm:['Load torque','N·m',0,'Torque needed to hold the concrete up at the dynamic angle. Usually the largest part of the total.','W_conc_N × lever_m'],
+  T_fric_Nm:['Roller friction torque','N·m',0,'Torque lost to rolling resistance at the support rollers.','W_total_N × mu_roll × R_m'],
+  T_run_Nm:['Mixing torque','N·m',0,'Steady torque at the drum while mixing at constant speed.','T_load_Nm + T_fric_Nm'],
+  J_total:['Rotating inertia','kg·m²',0,'Drum treated as a thin shell at full radius, concrete as a solid disc.','m_drum_kg × R_m² + m_conc_kg × R_m² ÷ 2'],
+  T_acc_Nm:['Ramp-up torque','N·m',0,'Extra torque to accelerate the inertia from rest in the ramp time.','J_total × omega ÷ t_ramp'],
+  T_total_Nm:['Start-up torque','N·m',0,'Mixing torque plus ramp-up torque, reached at the end of a loaded start.','T_run_Nm + T_acc_Nm'],
+  T_rev_Nm:['Reversing torque','N·m',0,'Mixing torque plus the torque to swing the inertia from full speed one way to full speed the other.','T_run_Nm + J_total × 2 × omega ÷ t_rev'],
+  T_peak_Nm:['Peak torque','N·m',0,'Largest drive torque in the cycle: the worse of a loaded start and a reversal. The full load is taken to be against the motor by the time the drum reaches speed, so load and inertia torque add and a shorter ramp always raises the peak.','max(T_total_Nm, T_rev_Nm)'],
+  T_peak_ftlb:['Peak torque','ft·lb',0,'Peak torque in US units.','T_peak_Nm × 0.73756'],
+  KE_kJ:['Stored energy at speed','kJ',1,'Kinetic energy in the turning drum and load, which the brake or relief has to absorb on a stop.','0.5 × J_total × omega² ÷ 1000'],
+  Vg_drum:['Displacement at drum','cc/rev',0,'Oil used per drum revolution.','motor_cc × gear_ratio'],
+  eta_mech:['Mechanical efficiency','–',3,'Torque efficiency from oil pressure to drum.','eff_gearbox × eff_motor_mech'],
+  dp_run_psi:['Motor pressure drop, mixing','psi',0,'Pressure difference across the hydraulic motor to make the mixing torque. 20π converts N·m and cc/rev to bar.','20π × T_run_Nm ÷ (Vg_drum × eta_mech) × 14.504'],
+  dp_peak_psi:['Motor pressure drop, peak','psi',0,'Pressure difference across the motor at peak torque.','20π × T_peak_Nm ÷ (Vg_drum × eta_mech) × 14.504'],
+  p_run_psi:['Mixing pressure','psi',0,'What a gauge on the pump pressure line should read at steady mixing speed with this batch.','dp_run_psi + p_loss_psi'],
+  p_peak_psi:['Peak pressure demanded','psi',0,'Pump-line pressure the peak torque asks for. If it is above the relief setting the relief opens and the drum falls behind the ramp.','dp_peak_psi + p_loss_psi'],
+  p_peak_lim_psi:['Peak pressure reached','psi',0,'Highest pressure the pump actually sees: the demand, capped by the relief valve.','min(p_peak_psi, p_relief_psi)'],
+  T_relief_Nm:['Max torque at relief','N·m',0,'Most torque this drive can put into the drum before the relief opens.','(p_relief_psi − p_loss_psi) ÷ 14.504 × Vg_drum × eta_mech ÷ 20π'],
+  motor_rpm:['Motor speed','rpm',0,'Hydraulic motor shaft speed at mixing speed.','rpm × gear_ratio'],
+  Q_gpm:['Flow needed','gpm',1,'Oil flow to turn the drum at the set speed, including motor leakage.','motor_cc × motor_rpm ÷ 1000 ÷ eff_vol ÷ 3.785'],
+  Q_pump_gpm:['Pump flow at pressure','gpm',1,'Flow the pump pushes against load pressure. A fixed pump delivers all of its flow at pressure whether the drum uses it or not.',R=>R.matched?'Q_gpm':'Q_src_gpm'],
+  rpm_full_src:['Drum speed at full pump flow','rpm',1,'Speed the drum would turn if all the pump flow went through the motor.','Q_src_gpm × 3.785 × 1000 × eff_vol ÷ motor_cc ÷ gear_ratio'],
+  Q_excess_gpm:['Excess flow to bypass','gpm',1,'Pump flow beyond what the drum needs, which a flow control has to bypass.','max(0, Q_pump_gpm − Q_gpm)'],
+  HP_heat:['Heat from bypass','hp',1,'Power turned to heat by bypassing the excess flow at load pressure.','p_run_psi × Q_excess_gpm ÷ 1714'],
+  HP_drum_run:['Power at the drum','hp',1,'Mechanical power actually doing the mixing.','T_run_Nm × omega ÷ 745.7'],
+  HP_hyd_run:['Hydraulic power into motor','hp',1,'Hydraulic power the motor consumes while mixing. 1714 converts psi × gpm to hp.','dp_run_psi × Q_gpm ÷ 1714'],
+  HP_pump_run:['Pump output power','hp',1,'Hydraulic power leaving the pump while mixing, including line loss and any bypassed flow.','p_run_psi × Q_pump_gpm ÷ 1714'],
+  HP_shaft_run:['Pump shaft power, mixing','hp',1,'Power the engine or electric motor must put into the pump shaft continuously while mixing.','HP_pump_run ÷ eff_pump'],
+  HP_shaft_peak:['Pump shaft power, peak','hp',1,'Pump shaft power at the highest pressure reached in the cycle.','p_peak_lim_psi × Q_pump_gpm ÷ 1714 ÷ eff_pump'],
+  eff_overall:['Overall efficiency','%',0,'Share of pump shaft power that reaches the drum as mixing power.','HP_drum_run ÷ HP_shaft_run × 100'],
+  HP_diesel:['Diesel engine, rated','hp',1,'Smallest rated engine power: it must cover the peak outright, and mixing must stay within the continuous load ceiling. Use the engine\'s net continuous rating at your site altitude and temperature, after fan and alternator loads.','max(HP_shaft_peak, HP_shaft_run ÷ eng_load)'],
+  kW_diesel:['Diesel engine, rated','kW',1,'Rated engine power in kW.','HP_diesel × 0.7457'],
+  HP_elec_req:['Electric motor, required','hp',1,'Smallest nameplate that carries mixing continuously and the peak within the short-term overload allowance.','max(HP_shaft_run, HP_shaft_peak ÷ elec_overload)'],
+  HP_elec_std:['Electric motor, nameplate','hp',-1,'Next standard motor size at or above the required power.','next standard size ≥ HP_elec_req'],
+  kW_elec_in:['Electrical input, mixing','kW',1,'Real power drawn from the supply while mixing.','HP_shaft_run × 0.7457 ÷ eff_elec'],
+  A_run:['Current while mixing','A',0,'Approximate line current at the mixing load. Power factor falls at part load, so expect the real figure a little higher.',amps('HP_shaft_run')],
+  A_fla:['Full-load current','A',0,'Estimated line current at nameplate power, for sizing wire, breaker and starter. Confirm against the actual motor nameplate.',amps('HP_elec_std')],
+};
+
+const KEY='drumTorqueInputs.v3';
+let saved={}; try{saved=JSON.parse(localStorage.getItem(KEY)||'{}')||{}}catch(e){saved={}}
+const $=id=>document.getElementById(id);
+
+for(const [g,id,def,step,min,max] of FIELDS){
+  const row=document.createElement('div'); row.className='field';
+  const v = (saved[id]!==undefined && isFinite(saved[id])) ? saved[id] : def;
+  row.innerHTML=`<label for="${id}" data-v="${id}">${D[id][0]}</label><input id="${id}" type="number" inputmode="decimal" step="${step}" min="${min}" max="${max}" value="${v}"><span class="unit">${D[id][1]}</span>`;
+  $(g).appendChild(row);
+}
+if(saved.matched===false) $('matched').checked=false;
+
+$('reset').addEventListener('click',()=>{
+  for(const f of FIELDS) $(f[1]).value=f[2];
+  $('matched').checked=true;
+  try{localStorage.removeItem(KEY)}catch(e){}
+  update();
+});
+
+const fmt=(v,d=0)=>isFinite(v)?v.toLocaleString('en-US',{minimumFractionDigits:d<0?0:d,maximumFractionDigits:Math.abs(d)}):'–';
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
+
+function read(){
+  const I={}; for(const f of FIELDS){const x=parseFloat($(f[1]).value); I[f[1]]=clamp(isFinite(x)?x:f[2],f[4],f[5]);}
+  I.volts=480; // three-phase only
+  I.matched=$('matched').checked;
+  return I;
+}
+
+function compute(I){
+  const R={...I};
+  R.m_conc_lb=I.yd_conc*I.rho_conc_lb; R.m_conc_kg=R.m_conc_lb*C.lb_to_kg; R.W_conc_N=R.m_conc_kg*C.g;
+  R.m_drum_kg=I.W_drum_lb*C.lb_to_kg; R.W_total_N=(R.m_conc_kg+R.m_drum_kg)*C.g;
+  R.R_m=I.D_drum_in*C.in_to_m/2; R.omega=I.rpm*C.rpm_to_rads; R.v_rim_fpm=R.omega*R.R_m*196.85;
+  R.r_cg=I.k_cg*R.R_m; R.theta_rad=I.theta_deg*Math.PI/180; R.lever_m=R.r_cg*Math.sin(R.theta_rad);
+  R.T_load_Nm=R.W_conc_N*R.lever_m;
+  R.T_fric_Nm=R.W_total_N*I.mu_roll*R.R_m; R.T_run_Nm=R.T_load_Nm+R.T_fric_Nm;
+  R.J_total=R.m_drum_kg*R.R_m**2+R.m_conc_kg*R.R_m**2/2;
+  R.T_acc_Nm=R.J_total*R.omega/I.t_ramp; R.T_total_Nm=R.T_run_Nm+R.T_acc_Nm;
+  R.T_rev_Nm=R.T_run_Nm+R.J_total*2*R.omega/I.t_rev;
+  R.KE_kJ=0.5*R.J_total*R.omega**2/1000;
+  R.Vg_drum=I.motor_cc*I.gear_ratio; R.eta_mech=I.eff_gearbox*I.eff_motor_mech;
+  const k=20*Math.PI/(R.Vg_drum*R.eta_mech)*C.bar_to_psi; // psi across the motor per N·m at the drum
+  R.psiPerNm=k;
+  R.dp_run_psi=R.T_run_Nm*k; R.p_run_psi=R.dp_run_psi+I.p_loss_psi;
+  R.motor_rpm=I.rpm*I.gear_ratio; R.Q_gpm=I.motor_cc*R.motor_rpm/1000/I.eff_vol/C.L_per_gal;
+  if(I.matched) R.Q_src_gpm=R.Q_gpm;
+  R.Q_pump_gpm=R.Q_src_gpm;
+  R.T_relief_Nm=Math.max(0,I.p_relief_psi-I.p_loss_psi)/k;
+  R.rpm_full_src=R.Q_src_gpm*C.L_per_gal*1000*I.eff_vol/I.motor_cc/I.gear_ratio;
+  R.Q_excess_gpm=Math.max(0,R.Q_pump_gpm-R.Q_gpm);
+  R.HP_heat=R.p_run_psi*R.Q_excess_gpm/C.hp_hyd_k;
+
+  // ---- time simulation ----
+  const W=R.omega, phases=[
+    {n:'Start',d:I.t_ramp,w0:0,w1:W,need:R.theta_rad,turn:W*I.t_ramp/2},{n:'Mix',d:I.t_hold,w0:W,w1:W},
+    {n:'Reverse',d:I.t_rev,w0:W,w1:-W,need:2*R.theta_rad,turn:W*I.t_rev/4},{n:'Discharge',d:I.t_hold,w0:-W,w1:-W},{n:'Stop',d:I.t_ramp,w0:-W,w1:0}];
+  const dt=Math.max(0.005,(I.t_ramp*2+I.t_rev+I.t_hold*2)/1200);
+  let t=0,L=0; const S=[]; let peak=0,peakT=0,overrun=false,overMin=0;
+  phases.forEach(ph=>{ph.t0=t;
+    const n=Math.max(1,Math.round(ph.d/dt)), a=ph.d>0?(ph.w1-ph.w0)/ph.d:0;
+    // The concrete rides the wall, so the load builds with drum rotation. On a ramp too short for the drum to
+    // turn that far, speed the build-up so the full load still arrives with the end of the ramp (worst case).
+    const gain=ph.need?Math.max(1,ph.need/ph.turn):1;
+    for(let i=(S.length?1:0);i<=n;i++){
+      const tt=ph.t0+ph.d*i/n, w=ph.w0+(ph.w1-ph.w0)*i/n;
+      if(S.length){const prev=S[S.length-1]; L=clamp(L+gain*((prev.w+w)/2)*(tt-prev.t)/R.theta_rad,-1,1);}
+      const sf=clamp(w/(0.02*W),-1,1);
+      const Tl=R.T_load_Nm*L, Tf=R.T_fric_Nm*sf, Ti=R.J_total*a;
+      const T=Tl+Tf+Ti;
+      // pg: what the pump-line gauge shows, capped by the relief
+      S.push({t:tt,w,L,rpm:w/C.rpm_to_rads,T,Tl,Tf,Ti,ph:ph.n,pg:Math.min(I.p_relief_psi,Math.abs(T)*k+I.p_loss_psi)});
+      if(Math.abs(T)>peak){peak=Math.abs(T);peakT=tt;}
+      if(Math.abs(w)>0.05*W && T*Math.sign(w)<-1){overrun=true; overMin=Math.min(overMin,T*Math.sign(w));}
+    }
+    t=ph.t0+ph.d; ph.t1=t;
+  });
+  R.S=S; R.phaseList=phases; R.t_end=t;
+  peak=Math.max(peak,R.T_total_Nm,R.T_rev_Nm); // equal by construction; guards rounding
+  R.T_peak_Nm=peak; R.t_peak=peakT; R.overrun=overrun; R.T_overrun_Nm=-overMin;
+  R.T_peak_ftlb=peak*C.Nm_to_ftlb;
+  R.dp_peak_psi=peak*k; R.p_peak_psi=R.dp_peak_psi+I.p_loss_psi;
+  R.p_peak_lim_psi=Math.min(R.p_peak_psi,I.p_relief_psi);
+
+  // ---- power, drum back to prime mover ----
+  R.HP_drum_run=R.T_run_Nm*R.omega/C.W_per_hp;
+  R.HP_hyd_run=R.dp_run_psi*R.Q_gpm/C.hp_hyd_k;
+  R.HP_pump_run=R.p_run_psi*R.Q_pump_gpm/C.hp_hyd_k;
+  R.HP_shaft_run=R.HP_pump_run/I.eff_pump;
+  R.HP_shaft_peak=R.p_peak_lim_psi*R.Q_pump_gpm/C.hp_hyd_k/I.eff_pump;
+  R.eff_overall=R.HP_drum_run/R.HP_shaft_run*100;
+  R.HP_diesel=Math.max(R.HP_shaft_peak,R.HP_shaft_run/I.eng_load);
+  R.kW_diesel=R.HP_diesel*C.W_per_hp/1000;
+  R.HP_elec_req=Math.max(R.HP_shaft_run,R.HP_shaft_peak/I.elec_overload);
+  R.HP_elec_std=NEMA.find(h=>h>=R.HP_elec_req-1e-9)||Math.ceil(R.HP_elec_req/50)*50;
+  R.kW_elec_in=R.HP_shaft_run*C.W_per_hp/1000/I.eff_elec;
+  const perHp=C.W_per_hp/(Math.sqrt(3)*I.volts*I.eff_elec*I.pf);
+  R.A_run=R.HP_shaft_run*perHp; R.A_fla=R.HP_elec_std*perHp;
+  return R;
+}
+
+// ---- hover: description + calculation ----
+let lastR=null;
+const subst=(f,R)=>f.replace(/[A-Za-z_][A-Za-z0-9_]*/g,tok=>(D[tok]&&isFinite(R[tok]))?fmt(R[tok],D[tok][2]):tok);
+function tipHTML(id){
+  const d=D[id], R=lastR; if(!d||!R) return '';
+  let h=`<b>${d[0]}</b><code>${id}</code><p>${d[3]}</p>`;
+  const val=`<b>${fmt(R[id],d[2])} ${d[1]}</b>`;
+  if(d[4]){
+    const f=typeof d[4]==='function'?d[4](R):d[4], n=subst(f,R);
+    h+=`<div class="eq"><div>= ${f}</div>${n!==f?`<div>= ${n}</div>`:''}<div>= ${val}</div></div>`;
+  } else h+=`<div class="eq">input · ${isFinite(R[id])?val:'not entered'}</div>`;
+  return h;
+}
+const vtip=$('vtip'); let tipFor=null;
+function showTip(el){
+  const h=tipHTML(el.getAttribute('data-v')); if(!h){hideTip();return;}
+  tipFor=el; vtip.innerHTML=h; vtip.hidden=false;
+  const r=el.getBoundingClientRect(), w=vtip.offsetWidth, hh=vtip.offsetHeight;
+  let top=r.bottom+8; if(top+hh>innerHeight-8 && r.top-hh-8>0) top=r.top-hh-8;
+  vtip.style.left=clamp(r.left,8,Math.max(8,innerWidth-w-8))+'px'; vtip.style.top=top+'px';
+}
+function hideTip(){tipFor=null; vtip.hidden=true;}
+document.addEventListener('pointerover',e=>{const el=e.target.closest&&e.target.closest('[data-v]'); if(el){if(el!==tipFor) showTip(el);} else hideTip();});
+document.addEventListener('pointerleave',hideTip);
+document.addEventListener('scroll',hideTip,true);
+document.addEventListener('keydown',e=>{if(e.key==='Escape') hideTip();});
+
+// ---- pressure gauge ----
+const GA={cx:120,cy:116,max:5000};
+const gAng=v=>-135+270*clamp(v/GA.max,0,1);
+const gPt=(v,r)=>{const a=gAng(v)*Math.PI/180; return [GA.cx+r*Math.sin(a),GA.cy-r*Math.cos(a)];};
+const gArc=(v0,v1,r)=>{const [x0,y0]=gPt(v0,r),[x1,y1]=gPt(v1,r); return `M${x0.toFixed(1)},${y0.toFixed(1)} A${r},${r} 0 ${gAng(v1)-gAng(v0)>180?1:0} 1 ${x1.toFixed(1)},${y1.toFixed(1)}`;};
+function drawGauge(R){
+  const need=Math.max(R.p_relief_psi*1.15,R.p_run_psi*1.1,500);
+  GA.max=[1000,1500,2000,3000,4000,5000,6000,8000,10000].find(m=>m>=need)||Math.ceil(need/5000)*5000;
+  const {cx,cy,max}=GA, major=niceStep(max,4), minor=major/2;
+  let s=`<circle cx="${cx}" cy="${cy}" r="108" fill="var(--bg)" stroke="var(--shell)" stroke-width="3"/>`;
+  s+=`<path d="${gArc(0,max,97)}" fill="none" stroke="var(--line)" stroke-width="5"/>`;
+  if(R.p_relief_psi<max) s+=`<path d="${gArc(R.p_relief_psi,max,97)}" fill="none" stroke="var(--bad)" stroke-width="5"/>`;
+  for(let v=0;v<=max+1e-6;v+=minor){
+    const isMaj=Math.abs(v/major-Math.round(v/major))<1e-6, [x0,y0]=gPt(v,isMaj?82:88),[x1,y1]=gPt(v,93);
+    s+=`<line x1="${x0.toFixed(1)}" y1="${y0.toFixed(1)}" x2="${x1.toFixed(1)}" y2="${y1.toFixed(1)}" stroke="var(--ink)" stroke-width="${isMaj?2.6:1.4}" opacity="${isMaj?1:.55}"/>`;
+    if(isMaj){const [tx,ty]=gPt(v,64); s+=`<text x="${tx.toFixed(1)}" y="${(ty+6).toFixed(1)}" text-anchor="middle" font-size="17">${v>=1000&&max>=3000?fmt(v/1000,-1)+'k':fmt(v,0)}</text>`;}
+  }
+  // markers for the two numbers worth checking in the field
+  const mk=(v,col)=>{const [x,y]=gPt(v,97); return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="7" fill="${col}" stroke="var(--bg)" stroke-width="2"/>`;};
+  s+=mk(R.p_peak_lim_psi,'var(--inertia)')+mk(R.p_run_psi,'var(--accent)');
+  s+=`<g id="needle"><path d="M${cx-4.5},${cy+16} L${cx},${cy-84} L${cx+4.5},${cy+16}z" fill="var(--bad)"/></g><circle cx="${cx}" cy="${cy}" r="7" fill="var(--shell)"/>`;
+  s+=`<text id="gread" x="${cx}" y="${cy+84}" text-anchor="middle" font-size="28" font-weight="500" style="fill:var(--ink)"></text>`;
+  s+=`<text x="${cx}" y="${cy+99}" text-anchor="middle" font-size="13">psi</text>`;
+  $('gauge').innerHTML=s;
+}
+function setNeedle(psi){
+  const n=$('needle'); if(!n) return;
+  n.setAttribute('transform',`rotate(${gAng(psi).toFixed(2)} ${GA.cx} ${GA.cy})`);
+  $('gread').textContent=fmt(psi,0);
+}
+
+// ---- drum diagram ----
+// L is how far the concrete is carried toward the dynamic angle (−1…1, sign follows drum direction)
+function drawDrum(R,L=1,rpmNow=R.rpm){
+  const svg=$('drum'), cx=150, cy=146, Rp=104;
+  const th=R.theta_rad*L, k=clamp(R.k_cg,0.05,0.95), side=th<0?-1:1;
+  const f=clamp(1-k/0.85,0.08,0.7);
+  let lo=0,hi=Math.PI; for(let i=0;i<40;i++){const a=(lo+hi)/2; ((2*a-Math.sin(2*a))/(2*Math.PI)<f)?lo=a:hi=a;}
+  const ha=(lo+hi)/2, pts=[];
+  for(let i=0;i<=40;i++){const b=-ha+2*ha*i/40; pts.push([cx+Rp*0.94*Math.sin(th+b), cy+Rp*0.94*Math.cos(th+b)]);}
+  const conc='M'+pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join('L')+'Z';
+  const gx=cx+Rp*k*Math.sin(th), gy=cy+Rp*k*Math.cos(th);
+  const arcR=34, ax=cx+arcR*Math.sin(th), ay=cy+arcR*Math.cos(th);
+  const fins=[]; for(let i=0;i<8;i++){const a=i*Math.PI/4; fins.push(`<line x1="${cx+Rp*0.80*Math.cos(a)}" y1="${cy+Rp*0.80*Math.sin(a)}" x2="${cx+Rp*0.95*Math.cos(a)}" y2="${cy+Rp*0.95*Math.sin(a)}"/>`);}
+  const rl=(s)=>{const a=Math.PI/2+s*0.62; return [cx+(Rp+16)*Math.cos(a), cy+(Rp+16)*Math.sin(a)];};
+  const [r1x,r1y]=rl(-1),[r2x,r2y]=rl(1);
+  svg.innerHTML=`
+  <defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="var(--accent)"/></marker>
+  <marker id="aw" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0L10,5L0,10z" fill="var(--ink)"/></marker></defs>
+  <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5" fill="var(--muted)">
+   <line x1="${cx-Rp}" y1="22" x2="${cx+Rp}" y2="22" stroke="var(--muted)" stroke-width="1" marker-start="url(#aw)" marker-end="url(#aw)" opacity=".7"/>
+   <text x="${cx}" y="16" text-anchor="middle" data-v="D_drum_in">D = ${fmt(R.D_drum_in,0)} in</text>
+  </g>
+  <circle cx="${r1x}" cy="${r1y}" r="13" fill="var(--surface)" stroke="var(--shell)" stroke-width="2"/>
+  <circle cx="${r2x}" cy="${r2y}" r="13" fill="var(--surface)" stroke="var(--shell)" stroke-width="2"/>
+  <circle cx="${cx}" cy="${cy}" r="${Rp}" fill="var(--bg)" stroke="var(--shell)" stroke-width="5"/>
+  <path d="${conc}" fill="var(--conc)" stroke="var(--conc-edge)" stroke-width="1.2"/>
+  <g id="fins" stroke="var(--shell)" stroke-width="3" stroke-linecap="round">${fins.join('')}</g>
+  <line x1="${cx}" y1="${cy}" x2="${cx}" y2="${cy+Rp*0.98}" stroke="var(--muted)" stroke-dasharray="3 3"/>
+  <line x1="${cx}" y1="${cy}" x2="${gx}" y2="${gy}" stroke="var(--ink)" stroke-width="1.4"/>
+  <path d="M${cx},${cy+arcR} A${arcR},${arcR} 0 0 ${th<0?1:0} ${ax},${ay}" fill="none" stroke="var(--load)" stroke-width="1.6"/>
+  <line x1="${gx}" y1="${gy}" x2="${gx}" y2="${gy+42}" stroke="var(--ink)" stroke-width="1.6" marker-end="url(#aw)"/>
+  <line x1="${cx}" y1="${gy}" x2="${gx}" y2="${gy}" stroke="var(--load)" stroke-width="2.4"/>
+  <circle cx="${cx}" cy="${cy}" r="4" fill="var(--ink)"/>
+  <circle cx="${gx}" cy="${gy}" r="5" fill="var(--ink)" stroke="var(--surface)" stroke-width="1.5"/>
+  <path d="M${cx-Rp-14},${cy+30} A${Rp+14},${Rp+14} 0 0 1 ${cx-Rp-14},${cy-30}" fill="none" stroke="var(--accent)" stroke-width="2" ${Math.abs(rpmNow)<0.05?"":rpmNow>0?`marker-start="url(#ah)"`:`marker-end="url(#ah)"`}/>
+  <g font-family="IBM Plex Mono, ui-monospace, monospace" font-size="10.5">
+   <text x="${cx-Rp-22}" y="${cy+4}" text-anchor="end" fill="var(--accent)" data-v="omega">ω</text>
+   <text x="${cx-Rp-22}" y="${cy+16}" text-anchor="end" fill="var(--accent)" data-v="rpm">${fmt(Math.abs(rpmNow),0)}</text>
+   <text x="${cx-6*side}" y="${cy+arcR+12}" text-anchor="${side>0?"end":"start"}" fill="var(--load)" data-v="theta_deg">θ ${fmt(Math.abs(R.theta_deg*L),0)}°</text>
+   <text x="${(cx+gx)/2}" y="${gy+15}" text-anchor="middle" fill="var(--load)" data-v="lever_m">lever ${fmt(Math.abs(R.r_cg*Math.sin(th))*1000,0)} mm</text>
+   <text x="${gx+8*side}" y="${gy+40}" text-anchor="${side>0?"start":"end"}" fill="var(--ink)" data-v="m_conc_lb">W ${fmt(R.m_conc_lb,0)} lb</text>
+   <text x="${cx}" y="${cy-14}" text-anchor="middle" fill="var(--ink)" data-v="r_cg">r_cg ${fmt(R.r_cg*1000,0)} mm</text>
+  </g>`;
+}
+
+// ---- animation: fins always, gauge + chart cursor while the cycle plays ----
+let spin=0,last=null,curRpm=20,play=null;
+const reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+// point the gauge and drum at one instant of the cycle, or at steady mixing when p is null
+function showSample(p,t){
+  const R=lastR;
+  if(!p){drawDrum(R); setNeedle(R.p_run_psi); $("gstate").textContent="Steady mixing";}
+  else{drawDrum(R,p.L,p.rpm); setNeedle(p.pg); $("gstate").textContent=`${p.ph} · ${fmt(t,1)} s`;}
+  const g=$("fins"); if(g) g.setAttribute("transform",`rotate(${spin%360} 150 146)`);
+}
+function sampleAt(t){const S=lastR.S; let lo=0,hi=S.length-1; while(hi-lo>1){const m=(lo+hi)>>1; (S[m].t<=t)?lo=m:hi=m;} return S[lo];}
+function stopPlay(){
+  play=null; $('play').textContent='▶ Play cycle';
+  if(!lastR) return;
+  curRpm=lastR.rpm; showSample(null);
+  const c=$('chart').querySelector('#playx'); if(c) c.setAttribute('visibility','hidden');
+}
+function tick(ts){
+  const dt=last===null?0:(ts-last)/1000; last=ts;
+  if(play&&lastR){
+    play.t+=dt;
+    if(play.t>=lastR.t_end) stopPlay();
+    else{
+      const p=sampleAt(play.t); curRpm=p.rpm; showSample(p,play.t);
+      const svg=$('chart'), c=svg.querySelector('#playx');
+      if(c&&svg._geo){const x=svg._geo.x(play.t); c.setAttribute('x1',x); c.setAttribute('x2',x); c.setAttribute('visibility','visible');}
+    }
+  }
+  if(!reduce||play){spin-=(curRpm*6)*dt; const g=$('fins'); if(g) g.setAttribute('transform',`rotate(${spin%360} 150 146)`);}
+  requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+$('play').addEventListener('click',()=>{ if(play) stopPlay(); else{play={t:0}; $('play').textContent='■ Stop';} });
+
+// ---- chart ----
+function niceStep(range,n){const r=range/n, p=Math.pow(10,Math.floor(Math.log10(r))), m=r/p; return (m<1.5?1:m<3?2:m<7?5:10)*p;}
+function drawChart(R){
+  const svg=$('chart'), box=$('chartbox');
+  const Wd=Math.max(300,box.clientWidth), narrow=Wd<520;
+  const mL=narrow?44:58, mR=narrow?44:62, H=narrow?320:330;
+  const top1=8, h1=narrow?64:76, top2=top1+h1+30, h2=H-top2-34;
+  svg.setAttribute('viewBox',`0 0 ${Wd} ${H}`); svg.setAttribute('width',Wd); svg.setAttribute('height',H);
+  const x=t=>mL+(Wd-mL-mR)*t/R.t_end;
+  const rmax=R.rpm*1.25, y1=v=>top1+h1/2-(h1/2)*v/rmax;
+  const Tmax=Math.max(R.T_peak_Nm,R.T_relief_Nm)*1.12, y2=v=>top2+h2/2-(h2/2)*v/Tmax;
+  let s='';
+  // phases
+  R.phaseList.forEach((ph,i)=>{
+    if(i>0) s+=`<line x1="${x(ph.t0)}" x2="${x(ph.t0)}" y1="${top1}" y2="${top2+h2}" stroke="var(--grid)"/>`;
+    if(ph.d>0 && (x(ph.t1)-x(ph.t0))>34) s+=`<text class="ttl" x="${(x(ph.t0)+x(ph.t1))/2}" y="${top2-8}" text-anchor="middle">${ph.n}</text>`;
+  });
+  // rpm strip
+  s+=`<line x1="${mL}" x2="${Wd-mR}" y1="${y1(0)}" y2="${y1(0)}" stroke="var(--line)"/>`;
+  [R.rpm,-R.rpm].forEach(v=>{s+=`<text x="${mL-6}" y="${y1(v)+3.5}" text-anchor="end">${fmt(v,0)}</text>`;});
+  s+=`<text x="${mL-6}" y="${y1(0)+3.5}" text-anchor="end">0</text>`;
+  s+=`<text class="ttl" x="${Wd-mR+6}" y="${y1(0)+4}">rpm</text>`;
+  s+=`<path d="${R.S.map((p,i)=>(i?'L':'M')+x(p.t).toFixed(1)+','+y1(p.rpm).toFixed(1)).join('')}" fill="none" stroke="var(--ink)" stroke-width="1.6"/>`;
+  // torque grid
+  const st=niceStep(Tmax,narrow?3:4);
+  for(let v=-Math.floor(Tmax/st)*st; v<=Tmax; v+=st){
+    s+=`<line x1="${mL}" x2="${Wd-mR}" y1="${y2(v)}" y2="${y2(v)}" stroke="${v===0?'var(--line)':'var(--grid)'}"/>`;
+    s+=`<text x="${mL-6}" y="${y2(v)+3.5}" text-anchor="end">${fmt(v/1000,1)}k</text>`;
+  }
+  const Pmax=Tmax*R.psiPerNm, ps=niceStep(Pmax,narrow?3:4);
+  for(let p=-Math.floor(Pmax/ps)*ps; p<=Pmax; p+=ps){
+    const v=p/R.psiPerNm;
+    s+=`<line x1="${Wd-mR}" x2="${Wd-mR+4}" y1="${y2(v)}" y2="${y2(v)}" stroke="var(--line)"/>`;
+    s+=`<text x="${Wd-mR+7}" y="${y2(v)+3.5}">${fmt(p,0)}</text>`;
+  }
+  s+=`<text class="ttl" x="${mL-6}" y="${top2-8}" text-anchor="end">N·m</text>`;
+  s+=`<text class="ttl" x="${Wd-mR+7}" y="${top2-8}">Δ psi</text>`;
+  // relief
+  [R.T_relief_Nm,-R.T_relief_Nm].forEach(v=>{s+=`<line x1="${mL}" x2="${Wd-mR}" y1="${y2(v)}" y2="${y2(v)}" stroke="var(--bad)" stroke-dasharray="2 3" stroke-width="1.3"/>`;});
+  s+=`<text x="${mL+4}" y="${y2(R.T_relief_Nm)-5}" style="fill:var(--bad)">relief ${fmt(R.p_relief_psi,0)} psi</text>`;
+  const line=(key,col,w,dash)=>`<path d="${R.S.map((p,i)=>(i?'L':'M')+x(p.t).toFixed(1)+','+y2(p[key]).toFixed(1)).join('')}" fill="none" stroke="${col}" stroke-width="${w}" ${dash?`stroke-dasharray="${dash}"`:''} stroke-linejoin="round"/>`;
+  s+=line('Tf','var(--fric)',1.3,'4 3')+line('Ti','var(--inertia)',1.5,'5 3')+line('Tl','var(--load)',1.5,'5 3')+line('T','var(--accent)',2.6);
+  // peak marker
+  const pk=R.S.reduce((a,b)=>Math.abs(b.T)>Math.abs(a.T)?b:a);
+  s+=`<circle cx="${x(pk.t)}" cy="${y2(pk.T)}" r="4" fill="var(--accent)" stroke="var(--surface)" stroke-width="1.5"/>`;
+  s+=`<text x="${clamp(x(pk.t),mL+40,Wd-mR-40)}" y="${y2(pk.T)+(pk.T<0?16:-9)}" text-anchor="middle" style="fill:var(--ink)">peak ${fmt(R.T_peak_Nm,0)} N·m</text>`;
+  // x axis
+  const xs=niceStep(R.t_end,narrow?4:8);
+  for(let t=0;t<=R.t_end+1e-6;t+=xs){s+=`<text x="${x(t)}" y="${H-14}" text-anchor="middle">${fmt(t,0)}</text>`;}
+  s+=`<text class="ttl" x="${Wd-mR}" y="${H-1}" text-anchor="end">time, s</text>`;
+  s+=`<line id="cross" x1="0" x2="0" y1="${top1}" y2="${top2+h2}" stroke="var(--muted)" stroke-dasharray="2 2" visibility="hidden"/>`;
+  s+=`<line id="playx" x1="0" x2="0" y1="${top1}" y2="${top2+h2}" stroke="var(--bad)" stroke-width="1.4" visibility="hidden"/>`;
+  svg.innerHTML=s;
+  svg._geo={x,mL,mR,Wd};
+}
+const ch=$('chart');
+function chartLeave(){
+  $('tip').hidden=true; const c=ch.querySelector('#cross'); if(c) c.setAttribute('visibility','hidden');
+  if(!play&&lastR) showSample(null);
+}
+function onMove(e){
+  if(!lastR) return; const g=ch._geo, tip=$('tip');
+  const rect=ch.getBoundingClientRect(), px=(e.clientX-rect.left)*(g.Wd/rect.width);
+  if(px<g.mL||px>g.Wd-g.mR){chartLeave(); return;}
+  const p=sampleAt((px-g.mL)/(g.Wd-g.mL-g.mR)*lastR.t_end);
+  const c=ch.querySelector('#cross'); c.setAttribute('x1',g.x(p.t)); c.setAttribute('x2',g.x(p.t)); c.setAttribute('visibility','visible');
+  tip.innerHTML=`${p.ph} · t ${fmt(p.t,2)} s<br>speed ${fmt(p.rpm,1)} rpm<br><b>total ${fmt(p.T,0)} N·m · gauge ${fmt(p.pg,0)} psi</b><br>load ${fmt(p.Tl,0)} · inertia ${fmt(p.Ti,0)} · friction ${fmt(p.Tf,0)}`;
+  tip.hidden=false;
+  if(!play) showSample(p,p.t);
+  const bx=$('chartbox').clientWidth, lx=(e.clientX-rect.left);
+  tip.style.left=(lx>bx/2? lx-tip.offsetWidth-12 : lx+12)+'px'; tip.style.top='8px';
+}
+ch.addEventListener('pointermove',onMove);
+ch.addEventListener('pointerleave',chartLeave);
+
+// ---- outputs ----
+function pill(el,cls,txt){el.className='pill '+cls; el.textContent=txt;}
+const TABLE=[
+  ['Load & geometry','m_conc_lb','m_conc_kg','W_conc_N','m_drum_kg','W_total_N','R_m','omega','v_rim_fpm','r_cg','lever_m'],
+  ['Torque','T_load_Nm','T_fric_Nm','T_run_Nm','J_total','T_acc_Nm','T_total_Nm','T_rev_Nm','T_peak_Nm','T_peak_ftlb','KE_kJ'],
+  ['Hydraulics','Vg_drum','eta_mech','dp_run_psi','dp_peak_psi','p_run_psi','p_peak_psi','p_peak_lim_psi','T_relief_Nm','motor_rpm','Q_gpm','Q_pump_gpm','rpm_full_src','Q_excess_gpm','HP_heat'],
+  ['Power','HP_drum_run','HP_hyd_run','HP_pump_run','HP_shaft_run','HP_shaft_peak','eff_overall'],
+  ['Engine or motor','HP_diesel','kW_diesel','HP_elec_req','HP_elec_std','kW_elec_in','A_run','A_fla'],
+];
+function render(R){
+  document.querySelectorAll('[data-out]').forEach(el=>{const id=el.getAttribute('data-out'); el.textContent=fmt(R[id],D[id][2]); el.setAttribute('data-v',id);});
+  $('eng-pct').textContent=fmt(R.HP_shaft_run/R.HP_diesel*100,0);
+
+  // power chain, drum back to the supply
+  const pct=x=>fmt(x*100,0)+'%';
+  const stage=(id,lbl)=>`<div class="stage" data-v="${id}"><b>${fmt(R[id],D[id][2])}<small>${D[id][1]}</small></b><span>${lbl}</span></div>`;
+  const loss=(...l)=>`<div class="loss">${l.map(x=>`<span>${x}</span>`).join('')}</div>`;
+  $('chain').innerHTML=stage('HP_drum_run','at the drum')
+    +loss('gearbox '+pct(R.eff_gearbox),'motor '+pct(R.eff_motor_mech*R.eff_vol))
+    +stage('HP_hyd_run','into hydraulic motor')
+    +loss('lines '+fmt(R.p_loss_psi,0)+' psi',...(R.Q_excess_gpm>0.05?['bypass '+fmt(R.Q_excess_gpm,1)+' gpm']:[]))
+    +stage('HP_pump_run','out of pump')
+    +loss('pump '+pct(R.eff_pump))
+    +stage('HP_shaft_run','pump shaft')
+    +loss('electric '+pct(R.eff_elec))
+    +stage('kW_elec_in','electrical input');
+  $('chain-cap').innerHTML=`Steady mixing, read left to right from the load back to the supply. <span data-v="eff_overall">${fmt(R.eff_overall,0)}% of pump shaft power reaches the drum.</span> Diesel is sized to cover the peak and to mix at no more than ${pct(R.eng_load)} of rating; electric to mix within nameplate and take the peak at up to ${fmt(R.elec_overload,2)}× for a few seconds.`;
+
+  const pr=R.p_peak_psi/R.p_relief_psi, short=R.Q_gpm>R.Q_pump_gpm+0.05;
+  pill($('pill-p'), pr>1?'bad':pr>0.9?'warn':'ok', pr>1?'Over relief':pr>0.9?'Near relief':'OK');
+  pill($('pill-q'), short?'bad':'ok', short?'Pump short':'OK');
+
+  const checks=[];
+  if(R.p_run_psi>R.p_relief_psi) checks.push(['bad',`Steady mixing alone needs ${fmt(R.p_run_psi,0)} psi, more than the ${fmt(R.p_relief_psi,0)} psi relief. The drum will not turn a full batch; use a larger motor or ratio, or a smaller batch.`]);
+  else if(pr>1) checks.push(['bad',`Peak demand is ${fmt(R.p_peak_psi,0)} psi, ${fmt((pr-1)*100,0)}% over the ${fmt(R.p_relief_psi,0)} psi relief. The relief opens and the drum falls behind the ramp. This drive tops out at ${fmt(R.T_relief_Nm,0)} N·m; a larger motor or ratio, a smaller batch or a longer ramp brings it under.`]);
+  else if(pr>0.9) checks.push(['warn',`Peak pressure is within 10% of relief. It works on paper, with little margin for a stiff mix.`]);
+  else checks.push(['ok',`Peak pressure stays ${fmt((1-pr)*100,0)}% under relief.`]);
+  if(R.matched) checks.push(['ok',`Pump sized to demand: ${fmt(R.Q_gpm,1)} gpm at ${fmt(R.p_run_psi,0)} psi while mixing.`]);
+  else if(short) checks.push(['bad',`The pump cannot supply ${fmt(R.Q_gpm,1)} gpm; at ${fmt(R.Q_src_gpm,1)} gpm the drum only reaches ${fmt(R.rpm_full_src,1)} rpm.`]);
+  else if(R.Q_excess_gpm>0.05) checks.push(['warn',`The pump delivers ${fmt(R.Q_excess_gpm,1)} gpm more than the drum needs. Bypassing it makes about ${fmt(R.HP_heat,1)} hp of heat, and that power is included in the engine and motor sizes above.`]);
+  else checks.push(['ok',`Pump flow matches the ${fmt(R.Q_gpm,1)} gpm needed.`]);
+  if(R.overrun) checks.push(['warn',`Just after reversing, the concrete falling back drives the drum ahead of the motor (up to ${fmt(R.T_overrun_Nm,0)} N·m), so a brake valve or crossover relief has to hold it.`]);
+  const worst=checks.some(c=>c[0]==='bad')?'bad':checks.some(c=>c[0]==='warn')?'warn':'ok', nIss=checks.filter(c=>c[0]!=='ok').length;
+  $('notes-dot').className='dot '+worst;
+  $('notes-sum').textContent=nIss?`Notes · ${nIss} to review`:'Notes · all checks pass';
+  $('checks').innerHTML=checks.map(c=>`<li class="${c[0]}"><span>${c[1]}</span></li>`).join('');
+
+  let h='<thead><tr><th>Quantity</th><th>Variable</th><th style="text-align:right">Value</th><th>Unit</th></tr></thead><tbody>';
+  for(const [grp,...ids] of TABLE){
+    h+=`<tr><th class="grp" colspan="4">${grp}</th></tr>`;
+    for(const id of ids) h+=`<tr data-v="${id}"><td>${D[id][0]}</td><td class="var">${id}</td><td class="val">${fmt(R[id],D[id][2])}</td><td class="u">${D[id][1]}</td></tr>`;
+  }
+  $('tbl').innerHTML=h+'</tbody>';
+}
+
+function update(){
+  const I=read(); const R=compute(I);
+  if(play) stopPlay();
+  lastR=R; curRpm=I.rpm; hideTip();
+  const q=$('Q_src_gpm'); q.disabled=I.matched; if(I.matched) q.value=Math.round(R.Q_gpm*10)/10;
+  drawGauge(R); drawChart(R); render(R);
+  showSample(null);
+  try{localStorage.setItem(KEY,JSON.stringify(I))}catch(e){}
+}
+$('form').addEventListener('input',update);
+// once an edit is committed, show the value actually used if it had to be pulled back into range
+$('form').addEventListener('change',()=>{
+  const I=read();
+  for(const f of FIELDS){const el=$(f[1]); if(!el.disabled&&parseFloat(el.value)!==I[f[1]]) el.value=I[f[1]];}
+  update();
+});
+if(window.ResizeObserver){new ResizeObserver(()=>{if(lastR) drawChart(lastR);}).observe($('chartbox'));}
+window.addEventListener('resize',()=>{if(lastR) drawChart(lastR);});
+update();
+})();
+</script>
+
+</body></html>
