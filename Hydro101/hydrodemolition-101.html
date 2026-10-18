@@ -8,23 +8,24 @@
 <title>Hydrodemolition 101</title>
 <!--
   app-id:    hydrodemolition-101
-  version:   0.1.0
+  version:   0.2.0
   owner:     lyondsgn
-  purpose:   Animated, tappable cross-section that teaches new PMs how a hydrodemolition job is set up and run.
+  purpose:   Animated, tappable 3D cutaway that teaches new PMs how a hydrodemolition job is set up and run.
   uses:      pdf (print / save as PDF handout)
   externals: Google Fonts (system-font fallback)
   qb-tables: none
 -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
 <style>
 :root{
   --bg:#eef0f2; --surface:#fbfcfc; --ink:#1b2227; --muted:#5a6670; --line:#d5dbdf; --grid:#e3e7ea;
   --accent:#1d5c96; --warn:#a8690f; --bad:#b42318;
-  --conc:#b9b3a6; --conc-edge:#8f887a; --soil:#e2dccf; --steel:#4a545c; --hose:#6b757d;
-  --equip:#e2ad2c; --equip-edge:#9a7417; --wood:#b9874f; --seal:#5d7f9a;
-  --water:#2a7fc1; --uhp:#7048c0; --air:#8d99a3; --sludge:#8a6a3d; --treated:#1f9e8f; --co2:#a7b1ba;
+  --edge:#2a3238; --conc:#bdb7aa; --floor:#d3cdc1; --yard:#e0dbd0; --soil:#c9bca4;
+  --steel:#5b666f; --cont:#56626c; --tank:#8b969f; --hose:#3f474e;
+  --equip:#e2ad2c; --wood:#b9874f; --seal:#5d7f9a;
+  --water:#2a7fc1; --uhp:#7048c0; --air:#8d99a3; --sludge:#8a6a3d; --treated:#1f9e8f; --co2:#b8c1c8;
   --paint-g:#2e9e4f; --paint-r:#c8372d;
   --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
@@ -34,16 +35,18 @@
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
   --accent:#6aa9e6; --warn:#e0a43a; --bad:#f07360;
-  --conc:#6f6a61; --conc-edge:#8c867b; --soil:#2a2622; --steel:#b9c3ca; --hose:#7d8890;
-  --equip:#d39f2a; --equip-edge:#f0c45a; --wood:#a87a46; --seal:#7fa3c0;
-  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#8a959e;
+  --edge:#0b0e10; --conc:#77726a; --floor:#55514a; --yard:#2c2a26; --soil:#211e1a;
+  --steel:#8e9aa3; --cont:#46525c; --tank:#67737c; --hose:#2a3035;
+  --equip:#d39f2a; --wood:#a87a46; --seal:#7fa3c0;
+  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#9aa5ae;
   --paint-g:#4cc070; --paint-r:#f07360; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
   --accent:#6aa9e6; --warn:#e0a43a; --bad:#f07360;
-  --conc:#6f6a61; --conc-edge:#8c867b; --soil:#2a2622; --steel:#b9c3ca; --hose:#7d8890;
-  --equip:#d39f2a; --equip-edge:#f0c45a; --wood:#a87a46; --seal:#7fa3c0;
-  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#8a959e;
+  --edge:#0b0e10; --conc:#77726a; --floor:#55514a; --yard:#2c2a26; --soil:#211e1a;
+  --steel:#8e9aa3; --cont:#46525c; --tank:#67737c; --hose:#2a3035;
+  --equip:#d39f2a; --wood:#a87a46; --seal:#7fa3c0;
+  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#9aa5ae;
   --paint-g:#4cc070; --paint-r:#f07360; color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -77,42 +80,49 @@ h3{font:600 1.1rem/1.2 var(--f-display);letter-spacing:.02em;margin:0}
 #scene{display:block;width:100%;height:auto}
 .pan{display:none;font-size:12px;color:var(--muted);margin:6px 0 0}
 #scene text{font-family:var(--f-body)}
-.lbl{font-size:14px;font-weight:600;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
-.floorlbl{font-size:12px;font-weight:600;letter-spacing:.08em;fill:var(--muted)}
-.mini{font-size:11px;fill:var(--muted)}
+.face{stroke:var(--edge);stroke-width:1;stroke-linejoin:round}
+.lit{fill:#fff;opacity:.2;pointer-events:none}
+.shd{fill:#000;opacity:.2;pointer-events:none}
+.lbl{font-size:12.5px;font-weight:700;letter-spacing:.05em;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
+.floorlbl{font-size:11px;font-weight:600;letter-spacing:.1em;fill:var(--muted)}
+.mini{font-size:11px;font-weight:600;letter-spacing:.06em}
 .badge circle{fill:var(--ink);transition:fill .2s}
-.badge text{fill:var(--surface);font:600 13px var(--f-mono)!important}
+.badge text{fill:var(--surface);font:600 12px var(--f-mono)!important}
 .part{cursor:pointer;transition:opacity .35s}
-.hit{fill:transparent;cursor:pointer}
-.hit.kb{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3}
 .part:hover .badge circle,.part:focus-visible .badge circle{fill:var(--accent)}
 .part:focus{outline:none}
-.dim{opacity:.2}
+.hit{fill:transparent;cursor:pointer}
+.hit.kb{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3}
+.dim{opacity:.18}
 .hose{fill:none;stroke:var(--hose);stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s}
-.hose.dimh{opacity:.25}
+.shine{fill:none;stroke:#fff;opacity:.28;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:opacity .35s}
+.dimh{opacity:.22}
+.shine.dimh{opacity:.06}
 .flow{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 12;opacity:0;transition:opacity .35s}
 .flow.on{opacity:1;animation:flow 1s linear infinite}
 .flow.k-uhp.on{animation-duration:.45s}
 .k-water{stroke:var(--water)} .k-uhp{stroke:var(--uhp)} .k-air{stroke:var(--air);stroke-dasharray:3 7} .k-sludge{stroke:var(--sludge)} .k-treated{stroke:var(--treated)} .k-co2{stroke:var(--co2);stroke-dasharray:2 6}
 @keyframes flow{to{stroke-dashoffset:-18}}
-#spray{fill:none;stroke:var(--water);stroke-width:3;stroke-dasharray:5 7;stroke-linecap:round;opacity:0;transition:opacity .3s}
-#spray.on{opacity:1;animation:flow .5s linear infinite}
+#spray{opacity:0;transition:opacity .3s}
+#spray.on{opacity:1}
+#spray path{fill:none;stroke:var(--water);stroke-width:2.6;stroke-dasharray:4 4;stroke-linecap:round}
+#spray.on path{animation:flow .4s linear infinite}
 #chip.on{animation:buzz .09s linear infinite}
 @keyframes buzz{50%{transform:translate(.8px,-.8px)}}
 #skid.on{animation:scoop 4s ease-in-out infinite}
 @keyframes scoop{50%{transform:translateX(10px)}}
-.bub{fill:none;stroke:var(--co2);stroke-width:1.5;opacity:0}
+.bub{fill:none;stroke:#fff;stroke-width:1.4;opacity:0}
 #bubbles.on .bub{animation:rise 1.8s ease-in infinite}
-@keyframes rise{0%{opacity:0;transform:translateY(0)}20%{opacity:1}100%{opacity:0;transform:translateY(-52px)}}
-#mneedle.on{animation:spin 1.6s linear infinite;transform-origin:1267px 544px}
+@keyframes rise{0%{opacity:0;transform:translateY(0)}20%{opacity:.9}100%{opacity:0;transform:translateY(-40px)}}
+#mneedle.on{animation:spin 1.6s linear infinite;transform-origin:1250px 541px}
 @keyframes spin{to{transform:rotate(360deg)}}
-#jetspray circle{fill:var(--water);animation:flick .25s linear infinite alternate}
+#jet circle{fill:var(--water);animation:flick .25s linear infinite alternate}
 @keyframes flick{to{opacity:.3}}
 .tw{transition:opacity .6s}
 #excl{transition:opacity .35s}
 @media (prefers-reduced-motion:reduce){
-  .flow.on,#spray.on,#chip.on,#skid.on,#bubbles.on .bub,#mneedle.on,#jetspray circle{animation:none}
-  #bubbles.on .bub{opacity:1}
+  .flow.on,#spray.on path,#chip.on,#skid.on,#bubbles.on .bub,#mneedle.on,#jet circle{animation:none}
+  #bubbles.on .bub{opacity:.9}
 }
 
 /* legend */
@@ -173,7 +183,7 @@ dialog::backdrop{background:rgba(10,14,17,.5)}
   .panel{border:0;padding:0}
   .stage{overflow:visible}
   #scene{min-width:0!important}
-  .flow,.flow.on,#spray,#chip,#skid,.bub,#mneedle{animation:none!important}
+  .flow,.flow.on,#spray path,#chip,#skid,.bub,#mneedle{animation:none!important}
   .dim{opacity:1!important}
   #handout{display:block}
   #handout h2,.glossary h2{margin:18px 0 6px}
@@ -201,228 +211,21 @@ dialog::backdrop{background:rgba(10,14,17,.5)}
   <section class="panel" aria-label="Process diagram">
     <nav aria-label="Process steps"><ul class="steps" id="steps"></ul></nav>
     <div class="stage" id="stage">
-<svg id="scene" viewBox="0 104 1300 536" role="img" aria-labelledby="scene-title">
-  <title id="scene-title">Cross-section of a hydrodemolition job: water supply and pumps on the left, the robot cutting the upper slab, containment and shoring on the floor below, settling and treatment tanks and the discharge to sewer on the right.</title>
-  <defs>
-    <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-      <line x1="0" y1="0" x2="0" y2="9" stroke="var(--bad)" stroke-width="2.2" opacity=".35"/>
-    </pattern>
-  </defs>
-
-  <!-- ground and soil -->
-  <rect x="0" y="575" width="1300" height="65" fill="var(--soil)"/>
-  <line x1="0" y1="560" x2="1300" y2="560" stroke="var(--conc-edge)" stroke-width="1.5"/>
-
-  <!-- building -->
-  <g id="building">
-    <line x1="380" y1="112" x2="900" y2="112" stroke="var(--line)" stroke-width="2" stroke-dasharray="6 6"/>
-    <rect x="380" y="112" width="15" height="448" fill="var(--conc)" stroke="var(--conc-edge)"/>
-    <rect x="885" y="112" width="15" height="448" fill="var(--conc)" stroke="var(--conc-edge)"/>
-    <rect x="395" y="300" width="165" height="30" fill="var(--conc)" stroke="var(--conc-edge)"/>
-    <rect x="720" y="300" width="165" height="30" fill="var(--conc)" stroke="var(--conc-edge)"/>
-    <rect id="dz" x="560" y="300" width="160" height="30" fill="var(--conc)" stroke="var(--conc-edge)" stroke-dasharray="3 2"/>
-    <rect id="rm" x="560" y="299" width="0" height="32" fill="var(--surface)"/>
-    <g id="rebar"></g>
-    <rect x="380" y="560" width="520" height="15" fill="var(--conc)" stroke="var(--conc-edge)"/>
-    <text class="floorlbl" x="404" y="136">UPPER FLOOR · DEMO LEVEL</text>
-    <text class="floorlbl" x="404" y="352">FLOOR BELOW</text>
-    <text class="floorlbl" x="20" y="136">SITE · WATER &amp; AIR IN</text>
-    <text class="floorlbl" x="930" y="136">SITE · TREAT &amp; DISCHARGE</text>
-  </g>
-
-  <!-- hoses (base) and animated flow overlays, generated from FLOWS -->
-  <g id="hoses"></g>
-  <g id="flows"></g>
-
-  <!-- exclusion zones during cutting -->
-  <g id="excl" opacity="0" pointer-events="none">
-    <rect x="546" y="166" width="188" height="133" fill="url(#hatch)" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="6 4"/>
-    <rect x="560" y="333" width="160" height="150" fill="url(#hatch)" stroke="var(--bad)" stroke-width="1.5" stroke-dasharray="6 4"/>
-    <text x="640" y="182" text-anchor="middle" class="mini" style="fill:var(--bad);font-weight:600">EXCLUSION ZONE</text>
-    <text x="640" y="398" text-anchor="middle" class="mini" style="fill:var(--bad);font-weight:600">NOBODY BELOW</text>
-  </g>
-
-  <!-- 1 paint -->
-  <g class="part" data-part="paint">
-    <line x1="560" y1="298.5" x2="720" y2="298.5" stroke="var(--paint-g)" stroke-width="4"/>
-    <line x1="560" y1="292" x2="560" y2="300" stroke="var(--paint-g)" stroke-width="3"/>
-    <line x1="720" y1="292" x2="720" y2="300" stroke="var(--paint-g)" stroke-width="3"/>
-    <line x1="560" y1="331.5" x2="720" y2="331.5" stroke="var(--paint-r)" stroke-width="4"/>
-    <line x1="560" y1="330" x2="560" y2="338" stroke="var(--paint-r)" stroke-width="3"/>
-    <line x1="720" y1="330" x2="720" y2="338" stroke="var(--paint-r)" stroke-width="3"/>
-    <g class="badge"><circle cx="596" cy="357" r="12"/><text x="596" y="361.5" text-anchor="middle">1</text></g>
-    <text class="lbl" x="614" y="362">Layout paint</text>
-  </g>
-
-  <!-- 2 shoring -->
-  <g class="part" data-part="shoring">
-    <g fill="var(--steel)">
-      <rect x="517" y="334" width="6" height="222"/><rect x="542" y="334" width="6" height="222"/>
-      <rect x="737" y="334" width="6" height="222"/><rect x="762" y="334" width="6" height="222"/>
-    </g>
-    <g fill="var(--wood)">
-      <rect x="508" y="330" width="49" height="5"/><rect x="508" y="555" width="49" height="5"/>
-      <rect x="728" y="330" width="49" height="5"/><rect x="728" y="555" width="49" height="5"/>
-    </g>
-    <g class="badge"><circle cx="532" cy="425" r="12"/><text x="532" y="429.5" text-anchor="middle">2</text></g>
-    <text class="lbl" x="532" y="455" text-anchor="middle">Shoring</text>
-  </g>
-
-  <!-- 3 containment walls + sludge pool -->
-  <g class="part" data-part="walls">
-    <rect id="pool" x="580" y="560" width="120" height="0" fill="var(--sludge)" opacity=".85"/>
-    <g id="chunks" fill="var(--conc-edge)" opacity="0">
-      <path d="M592,560 l8,-10 l9,4 l4,6z"/><path d="M622,560 l5,-14 l11,3 l3,11z"/><path d="M655,560 l7,-8 l8,2 l2,6z"/><path d="M676,560 l4,-11 l10,5 l1,6z"/>
-    </g>
-    <rect x="571" y="486" width="9" height="74" fill="var(--wood)" stroke="var(--equip-edge)" stroke-width=".8"/>
-    <rect x="700" y="486" width="9" height="74" fill="var(--wood)" stroke="var(--equip-edge)" stroke-width=".8"/>
-    <g fill="var(--seal)"><ellipse cx="568" cy="558" rx="4" ry="3"/><ellipse cx="583" cy="558" rx="4" ry="3"/><ellipse cx="697" cy="558" rx="4" ry="3"/><ellipse cx="712" cy="558" rx="4" ry="3"/></g>
-    <g class="badge"><circle cx="596" cy="468" r="12"/><text x="596" y="472.5" text-anchor="middle">3</text></g>
-    <text class="lbl" x="614" y="473">Containment</text>
-  </g>
-
-  <!-- 4 water supply + backflow -->
-  <g class="part" data-part="supply">
-    <rect x="28" y="520" width="18" height="40" rx="4" fill="var(--paint-r)"/>
-    <rect x="24" y="514" width="26" height="8" rx="3" fill="var(--paint-r)"/>
-    <rect x="78" y="530" width="46" height="22" rx="7" fill="var(--seal)"/>
-    <path d="M86,530 a7,7 0 0 1 14,0z M104,530 a7,7 0 0 1 14,0z" fill="var(--seal)"/>
-    <line x1="101" y1="514" x2="101" y2="523" stroke="var(--steel)" stroke-width="2"/>
-    <rect x="88" y="498" width="26" height="18" rx="3" fill="var(--surface)" stroke="var(--steel)" stroke-width="1.5"/>
-    <circle cx="101" cy="507" r="5" fill="none" stroke="var(--steel)" stroke-width="1.3"/>
-    <g class="badge"><circle cx="30" cy="605" r="12"/><text x="30" y="609.5" text-anchor="middle">4</text></g>
-    <text class="lbl" x="48" y="610">Water supply + backflow</text>
-  </g>
-
-  <!-- 5 UHP pumps -->
-  <g class="part" data-part="uhp">
-    <rect x="150" y="458" width="112" height="88" rx="5" fill="var(--equip)" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <rect x="160" y="470" width="44" height="30" rx="2" fill="none" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <g stroke="var(--equip-edge)" stroke-width="1.5"><line x1="214" y1="472" x2="252" y2="472"/><line x1="214" y1="480" x2="252" y2="480"/><line x1="214" y1="488" x2="252" y2="488"/></g>
-    <text x="206" y="528" text-anchor="middle" style="font:600 15px var(--f-mono);fill:var(--equip-edge)">UHP</text>
-    <circle cx="172" cy="550" r="10" fill="var(--steel)"/><circle cx="240" cy="550" r="10" fill="var(--steel)"/>
-    <g class="badge"><circle cx="232" cy="605" r="12"/><text x="232" y="609.5" text-anchor="middle">5</text></g>
-    <text class="lbl" x="250" y="610">UHP pumps</text>
-  </g>
-
-  <!-- 6 compressor -->
-  <g class="part" data-part="compressor">
-    <rect x="275" y="482" width="90" height="64" rx="8" fill="var(--equip)" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <g stroke="var(--equip-edge)" stroke-width="1.5"><line x1="288" y1="494" x2="288" y2="534"/><line x1="296" y1="494" x2="296" y2="534"/><line x1="304" y1="494" x2="304" y2="534"/><line x1="312" y1="494" x2="312" y2="534"/></g>
-    <text x="340" y="520" text-anchor="middle" style="font:600 13px var(--f-mono);fill:var(--equip-edge)">AIR</text>
-    <circle cx="298" cy="550" r="10" fill="var(--steel)"/><circle cx="344" cy="550" r="10" fill="var(--steel)"/>
-    <g class="badge"><circle cx="252" cy="630" r="12"/><text x="252" y="634.5" text-anchor="middle">6</text></g>
-    <text class="lbl" x="270" y="635">Air compressors</text>
-  </g>
-
-  <!-- 7 robot -->
-  <g class="part" data-part="robot">
-    <rect x="496" y="190" width="234" height="7" fill="var(--steel)"/>
-    <rect x="496" y="192" width="8" height="62" fill="var(--steel)"/>
-    <rect x="430" y="252" width="80" height="34" rx="4" fill="var(--equip)" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <rect x="438" y="259" width="26" height="14" rx="2" fill="none" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <rect x="420" y="285" width="100" height="15" rx="7.5" fill="var(--steel)"/>
-    <g fill="var(--surface)"><circle cx="430" cy="292.5" r="4"/><circle cx="450" cy="292.5" r="3"/><circle cx="470" cy="292.5" r="3"/><circle cx="490" cy="292.5" r="3"/><circle cx="510" cy="292.5" r="4"/></g>
-    <g id="carr" transform="translate(560,0)">
-      <rect x="-10" y="185" width="20" height="17" rx="2" fill="var(--equip)" stroke="var(--equip-edge)"/>
-      <line x1="0" y1="202" x2="0" y2="282" stroke="var(--steel)" stroke-width="5"/>
-      <g id="jet" style="display:none">
-        <line x1="0" y1="282" x2="0" y2="300" stroke="var(--water)" stroke-width="3"/>
-        <g id="jetspray"><circle cx="-6" cy="296" r="2"/><circle cx="6" cy="294" r="2"/><circle cx="-3" cy="290" r="1.5"/><circle cx="4" cy="299" r="1.5"/></g>
-      </g>
-    </g>
-    <g class="badge"><circle cx="452" cy="232" r="12"/><text x="452" y="236.5" text-anchor="middle">7</text></g>
-    <text class="lbl" x="440" y="237" text-anchor="end">Robot</text>
-  </g>
-
-  <!-- debris particles (generated) -->
-  <g id="debris" fill="var(--conc-edge)" pointer-events="none"></g>
-
-  <!-- 9 chipping -->
-  <g class="part" data-part="chipping">
-    <circle cx="768" cy="249" r="6.5" fill="var(--ink)"/>
-    <path d="M759,247 a9,7.5 0 0 1 18,0z" fill="var(--equip)"/>
-    <path d="M768,256 L768,281 M768,281 L761,300 M768,281 L775,300 M768,264 L755,268 L751,264" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <g id="chip"><line x1="752" y1="262" x2="729" y2="296" stroke="var(--steel)" stroke-width="5" stroke-linecap="round"/><line x1="746" y1="259" x2="757" y2="266" stroke="var(--steel)" stroke-width="3" stroke-linecap="round"/></g>
-    <g class="badge"><circle cx="768" cy="216" r="12"/><text x="768" y="220.5" text-anchor="middle">9</text></g>
-    <text class="lbl" x="786" y="221">Chipping</text>
-  </g>
-
-  <!-- 8 washdown -->
-  <path id="spray" d="M826,268 Q772,246 712,298" pointer-events="none"/>
-  <g class="part" data-part="washdown">
-    <circle cx="854" cy="249" r="6.5" fill="var(--ink)"/>
-    <path d="M845,247 a9,7.5 0 0 1 18,0z" fill="var(--equip)"/>
-    <path d="M854,256 L854,281 M854,281 L847,300 M854,281 L861,300 M854,264 L840,266" fill="none" stroke="var(--ink)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-    <line x1="842" y1="263" x2="826" y2="269" stroke="var(--steel)" stroke-width="5" stroke-linecap="round"/>
-    <g class="badge"><circle cx="868" cy="180" r="12"/><text x="868" y="184.5" text-anchor="middle">8</text></g>
-    <text class="lbl" x="886" y="185">Washdown hose</text>
-  </g>
-
-  <!-- 10 membrane pump -->
-  <g class="part" data-part="membrane">
-    <rect x="790" y="520" width="56" height="38" rx="5" fill="var(--equip)" stroke="var(--equip-edge)" stroke-width="1.5"/>
-    <circle cx="805" cy="539" r="10" fill="none" stroke="var(--equip-edge)" stroke-width="2.5"/>
-    <circle cx="831" cy="539" r="10" fill="none" stroke="var(--equip-edge)" stroke-width="2.5"/>
-    <g class="badge"><circle cx="790" cy="455" r="12"/><text x="790" y="459.5" text-anchor="middle">10</text></g>
-    <text class="lbl" x="808" y="445">Membrane</text>
-    <text class="lbl" x="808" y="462">pump</text>
-  </g>
-
-  <!-- 11 settling tanks -->
-  <g class="part" data-part="tanks">
-    <rect class="tw" id="t1w" x="933" y="490" width="84" height="67" fill="var(--sludge)" opacity=".55"/>
-    <rect class="tw" id="t1s" x="933" y="543" width="84" height="14" fill="var(--sludge)"/>
-    <rect class="tw" id="t2w" x="1038" y="490" width="84" height="67" fill="var(--water)" opacity=".4"/>
-    <rect class="tw" id="t2s" x="1038" y="549" width="84" height="8" fill="var(--sludge)"/>
-    <g fill="none" stroke="var(--steel)" stroke-width="3"><path d="M930,470 V560 H1020 V470"/><path d="M1035,470 V560 H1125 V470"/></g>
-    <g stroke="var(--steel)" stroke-width="1" opacity=".5"><line x1="952" y1="472" x2="952" y2="558"/><line x1="975" y1="472" x2="975" y2="558"/><line x1="998" y1="472" x2="998" y2="558"/><line x1="1057" y1="472" x2="1057" y2="558"/><line x1="1080" y1="472" x2="1080" y2="558"/><line x1="1103" y1="472" x2="1103" y2="558"/></g>
-    <text class="mini" x="975" y="463" text-anchor="middle">tank 1</text>
-    <text class="mini" x="1080" y="463" text-anchor="middle">tank 2</text>
-    <g class="badge"><circle cx="945" cy="603" r="12"/><text x="945" y="607.5" text-anchor="middle">11</text></g>
-    <text class="lbl" x="963" y="608">Settling tanks</text>
-  </g>
-
-  <!-- 12 CO2 treatment -->
-  <g class="part" data-part="treat">
-    <rect class="tw" id="t3w" x="1143" y="490" width="84" height="67" fill="var(--treated)" opacity=".45"/>
-    <g id="bubbles">
-      <circle class="bub" cx="1165" cy="552" r="3" style="animation-delay:0s"/><circle class="bub" cx="1185" cy="552" r="2.5" style="animation-delay:.5s"/>
-      <circle class="bub" cx="1205" cy="552" r="3" style="animation-delay:1s"/><circle class="bub" cx="1175" cy="552" r="2" style="animation-delay:1.3s"/>
-      <circle class="bub" cx="1215" cy="552" r="2" style="animation-delay:.25s"/>
-    </g>
-    <path d="M1140,470 V560 H1230 V470" fill="none" stroke="var(--steel)" stroke-width="3"/>
-    <rect x="1238" y="494" width="14" height="66" rx="7" fill="var(--co2)" stroke="var(--steel)"/>
-    <rect x="1242" y="488" width="6" height="7" fill="var(--steel)"/>
-    <text class="mini" x="1185" y="463" text-anchor="middle">tank 3</text>
-    <text class="mini" x="1249" y="530" text-anchor="middle" transform="rotate(-90 1249 530)" style="fill:var(--steel);font-weight:600">CO₂</text>
-    <g class="badge"><circle cx="1110" cy="630" r="12"/><text x="1110" y="634.5" text-anchor="middle">12</text></g>
-    <text class="lbl" x="1128" y="635">CO₂ treatment</text>
-  </g>
-
-  <!-- 13 discharge meter -->
-  <g class="part" data-part="meter">
-    <rect x="1252" y="530" width="30" height="28" rx="4" fill="var(--surface)" stroke="var(--steel)" stroke-width="2"/>
-    <circle cx="1267" cy="544" r="8" fill="none" stroke="var(--steel)" stroke-width="1.5"/>
-    <line id="mneedle" x1="1267" y1="544" x2="1267" y2="538" stroke="var(--bad)" stroke-width="2" stroke-linecap="round"/>
-    <g class="badge"><circle cx="1268" cy="512" r="12"/><text x="1268" y="516.5" text-anchor="middle">13</text></g>
-    <text class="lbl" x="1268" y="490" text-anchor="middle">Meter</text>
-    <text class="mini" x="1284" y="600" text-anchor="end">to sewer</text>
-  </g>
-
-  <!-- 14 debris haul -->
-  <g class="part" data-part="haul">
-    <g id="skid">
-      <rect x="406" y="520" width="58" height="28" rx="4" fill="var(--equip)" stroke="var(--equip-edge)" stroke-width="1.5"/>
-      <path d="M414,520 V502 H446 V520" fill="none" stroke="var(--steel)" stroke-width="3"/>
-      <line x1="458" y1="524" x2="484" y2="540" stroke="var(--steel)" stroke-width="5" stroke-linecap="round"/>
-      <path d="M478,535 L498,535 L504,557 L480,557z" fill="var(--steel)"/>
-      <circle cx="420" cy="551" r="9" fill="var(--steel)"/><circle cx="450" cy="551" r="9" fill="var(--steel)"/>
-    </g>
-    <g class="badge"><circle cx="420" cy="476" r="12"/><text x="420" y="480.5" text-anchor="middle">14</text></g>
-    <text class="lbl" x="438" y="481">Debris haul</text>
-  </g>
-</svg>
+      <svg id="scene" viewBox="0 170 1300 450" role="img" aria-labelledby="scene-title">
+        <title id="scene-title">3D cutaway of a hydrodemolition job: water supply, UHP pumps and compressor on the left; the robot cutting the upper slab; shoring and containment on the floor below; settling and treatment tanks and the discharge to sewer on the right.</title>
+        <defs>
+          <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".12"/>
+          </linearGradient>
+          <linearGradient id="cyl" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#000" stop-opacity=".15"/><stop offset=".35" stop-color="#fff" stop-opacity=".35"/><stop offset="1" stop-color="#000" stop-opacity=".25"/>
+          </linearGradient>
+          <pattern id="hatch" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="9" stroke="var(--bad)" stroke-width="2.2" opacity=".4"/>
+          </pattern>
+        </defs>
+        <g id="root"></g>
+      </svg>
     </div>
     <p class="pan">Swipe the diagram sideways to see the whole site. Each step pans to its part.</p>
     <div class="legend" aria-label="Legend">
@@ -494,7 +297,7 @@ const PARTS = {
     why:'The crew on the floor below can see exactly where water and debris will come through, so shoring, containment and the exclusion zone go in the right place.',
     links:['Shoring and containment are laid out from the red outline below']},
   shoring: {n:2, name:'Shoring',
-    what:'Temporary posts and beams on the floor below, laid out to the engineer\'s design.',
+    what:'Temporary posts and beams on the floor below, laid out to the engineer\'s design. They usually stand inside the containment area, around the opening.',
     why:'Removing concrete weakens the slab, and the robot adds weight. Shoring carries that load until the repair has been placed and cured.',
     links:['Engineer\'s shoring plan','Sits on the floor below the demo area'],
     safety:'Never remove or adjust shoring without engineer sign-off. Inspect it daily.'},
@@ -506,97 +309,88 @@ const PARTS = {
   supply: {n:4, name:'Water supply and backflow monitoring',
     what:'Clean water from a hydrant or building connection feeds the UHP pumps and the washdown hose. A backflow preventer with monitoring sits between the source and our equipment.',
     why:'It makes sure we never push water back into the system we are pulling from, which protects the owner\'s or city\'s drinking water.',
-    links:['Hydrant or building supply (in)','UHP pumps and washdown hose (out)'],
+    links:['Hydrant or building supply (in)','UHP pumps and washdown pump (out)'],
     safety:'Confirm the backflow device is tested and tagged before connecting.'},
+  washpump: {n:6, name:'Washdown pump',
+    what:'A smaller, high-volume, low-pressure pump that feeds the big washdown hose. It is separate from the UHP pumps.',
+    why:'Washdown needs a lot of water at low pressure to move material, not cutting pressure, so the UHP system stays dedicated to the robot.',
+    links:['Water supply through the backflow preventer (in)','Washdown hose on the demo floor (out)']},
   uhp: {n:5, name:'UHP water pumps',
     what:'Diesel-driven pump units that take clean water from the supply and raise it to ultra-high pressure (UHP), then send it to the robot through rated high-pressure hose.',
     why:'That pressure is what does the cutting. Every hose, fitting and restraint between the pump and the robot has to be rated for it.',
     links:['Water supply through the backflow preventer (in)','Robot, through UHP hose (out)'],
     safety:'A UHP leak or jet can inject water through skin. Never touch or step on a pressurized hose. Depressurize before any connection is touched.'},
-  compressor: {n:6, name:'Air compressors',
+  compressor: {n:7, name:'Air compressors',
     what:'Supply compressed air to the chipping hammers on the demo floor and to the membrane pumps on the floor below.',
     why:'Air-powered tools and pumps are safe to run in water and slurry, with no electric motors in the wet zone.',
     links:['Chipping hammers (upper floor)','Membrane pumps (floor below)'],
     safety:'Whip checks on every air hose coupling. Bleed pressure before disconnecting.'},
-  robot: {n:7, name:'Hydrodemolition robot',
-    what:'A remote-controlled, tracked machine that aims a UHP water jet at the concrete. The nozzle sweeps back and forth across the marked area, stepping along as it goes.',
+  robot: {n:8, name:'Hydrodemolition robot',
+    what:'A remote-controlled, tracked machine with the UHP lance on its front. The lance sweeps side to side across the marked area while the robot backs away from the cut, so it always sits on sound concrete.',
     why:'Water removes weak or damaged concrete without the micro-cracking jackhammers cause, and leaves the rebar clean and in place, ready for new concrete.',
     links:['UHP pumps, through the high-pressure hose'],
     safety:'Run from outside the exclusion zone. Nobody in the cutting area, or on the floor directly below, while the jet is live.'},
-  washdown: {n:8, name:'Washdown hose',
+  washdown: {n:9, name:'Washdown hose',
     what:'A large, low-pressure hose the crew uses to flush cut material and slurry off the slab and down through the opening.',
     why:'Keeps the cut surface clean so the operator can see progress, and makes sure debris ends up inside containment.',
-    links:['Water supply'],
+    links:['Washdown pump'],
     safety:'Only once the robot has stopped. Watch your footing at the open edge.'},
-  chipping: {n:9, name:'Chipping',
+  chipping: {n:10, name:'Chipping',
     what:'Air-powered chipping hammers clean up corners, edges and spots the robot cannot reach.',
     why:'Gives a clean, sound edge all the way around the repair.',
     links:['Air compressor'],
     safety:'Hearing, eye and face protection. Watch your footing at the open edge.'},
-  membrane: {n:10, name:'Membrane pumps',
-    what:'Air-operated diaphragm pumps that suck slurry out of containment and push it to the settling tanks.',
+  membrane: {n:11, name:'Membrane pumps',
+    what:'Air-operated double-diaphragm pumps, usually on a hand truck, that suck slurry out of containment and push it to the settling tanks.',
     why:'They can pump thick, gritty slurry and run dry without damage. Being air-powered, they are safe in standing water.',
     links:['Containment (in)','Air compressor (power)','Settling tanks (out)']},
-  tanks: {n:11, name:'Settling tanks',
+  tanks: {n:12, name:'Settling tanks',
     what:'A train of containers. Slurry enters the first one. Solids sink to the bottom while water overflows into the next container, getting cleaner each time.',
     why:'Most of the concrete fines are caught here instead of going to the sewer. Settled solids are dug out and hauled away.',
     links:['Membrane pumps (in)','CO₂ treatment tank (out)']},
-  treat: {n:12, name:'CO₂ treatment and pH adjustment',
+  treat: {n:13, name:'CO₂ treatment and pH adjustment',
     what:'The last container. CO₂ is bubbled into the water to bring down its alkalinity (pH), and a demulsifying treatment helps the last fines drop out.',
     why:'Water that has touched concrete is strongly alkaline. The sewer permit limits pH, so it has to be brought back into range before discharge.',
     links:['Settling tanks (in)','CO₂ cylinders','Discharge meter (out)'],
     safety:'CO₂ displaces oxygen. Keep cylinders secured and upright, and the area ventilated.'},
-  meter: {n:13, name:'Discharge meter',
+  meter: {n:14, name:'Discharge meter',
     what:'Measures how much treated water we send to the sewer.',
     why:'The discharge permit sets limits and requires records. The meter reading is our proof of what went in.',
     links:['CO₂ treatment tank (in)','Sanitary sewer (out)']},
-  haul: {n:14, name:'Debris removal',
+  haul: {n:15, name:'Debris removal',
     what:'Larger chunks that will not pump are scooped out of containment with a skid steer or similar equipment and hauled off site. Settled solids from the tanks go too.',
     why:'Keeps containment clear and stops the pumps from clogging.',
     links:['Containment area','Haul-off bins or trucks'],
     safety:'Use a spotter when equipment works near shoring and containment walls.'},
 };
 
-// ---- hoses and flows: drawn once, animated per step ----
-const FLOWS = [
-  {id:'supply',    kind:'water',   w:5, d:'M46,541 L150,541'},
-  {id:'wash',      kind:'water',   w:5, d:'M140,541 L140,150 L838,150 L838,263'},
-  {id:'uhp',       kind:'uhp',     w:6, d:'M262,496 L372,496 L372,288 L424,288'},
-  {id:'airchip',   kind:'air',     w:4, d:'M365,506 L380,506 L380,296 L748,296 L752,266'},
-  {id:'airpump',   kind:'air',     w:4, d:'M365,552 L790,552'},
-  {id:'sludge',    kind:'sludge',  w:5, d:'M655,552 L655,478 L812,478 L812,520 M846,532 L915,532 L915,460 L952,460 L952,480'},
-  {id:'overflow',  kind:'water',   w:5, d:'M1020,486 L1035,486 M1125,486 L1140,486'},
-  {id:'co2',       kind:'co2',     w:3, d:'M1245,488 L1245,476 L1200,476 L1200,548'},
-  {id:'discharge', kind:'treated', w:5, d:'M1230,548 L1252,548 M1282,548 L1292,548 L1292,640'},
-];
-const ALL_FLOWS = FLOWS.map(f=>f.id);
-
 // ---- steps: whole site always visible; each step highlights and animates its part ----
 // cut: none | run (animates the cut) | sweep (cutting in progress, for the overview) | done
+const FLOW_IDS=['supply','wash','uhp','airchip','airpump','sludge','overflow','co2','discharge'];
 const STEPS = [
-  {chip:'Overview', title:'The whole operation', focus:'all', flows:ALL_FLOWS, cut:'sweep', pool:.5, tanks:true, scoop:true, wash:true, x:null,
+  {chip:'Overview', title:'The whole operation', focus:'all', flows:FLOW_IDS, cut:'sweep', pool:.5, tanks:true, scoop:true, wash:true, x:null,
    text:'Everything running at once. Clean water comes in on the left and is pumped to ultra-high pressure for the robot cutting the upper slab. Slurry and debris drop into containment on the floor below, get pumped through settling and treatment on the right, and go out through the meter to the sewer. Step through the job, or tap any numbered part.'},
-  {chip:'Mark', title:'Mark the demo area', focus:['paint'], flows:[], cut:'none', pool:0, x:640,
+  {chip:'Mark', title:'Mark the demo area', focus:['paint'], flows:[], cut:'none', pool:0, x:670,
    text:'The repair areas are outlined on top of the slab in green spray paint. The same outline is then transferred to the underside in red, so the crew on the floor below knows exactly where water and debris will come through.',
    safety:'Confirm what is embedded in the slab (conduit, post-tension tendons) before the layout is final.'},
-  {chip:'Shore', title:'Shore the floor below', focus:['shoring','paint'], flows:[], cut:'none', pool:0, x:640,
-   text:'Shoring goes in on the floor below to the engineer\'s plan, before any concrete is removed. It carries the slab and the robot while the slab is weakened, and stays until the engineer releases it.',
+  {chip:'Shore', title:'Shore the floor below', focus:['shoring','paint'], flows:[], cut:'none', pool:0, x:670,
+   text:'Shoring goes in on the floor below to the engineer\'s plan, before any concrete is removed, usually inside the area that will be contained. It carries the slab and the robot while the slab is weakened, and stays until the engineer releases it.',
    safety:'Never remove or adjust shoring without engineer sign-off.'},
-  {chip:'Contain', title:'Build containment', focus:['walls','paint'], flows:[], cut:'none', pool:0, x:640,
-   text:'Wooden retaining walls are built on the floor below, under the red outline, and sealed to the floor with silicone. They catch the slurry and debris that come through the slab.',
+  {chip:'Contain', title:'Build containment', focus:['walls','paint'], flows:[], cut:'none', pool:0, x:670,
+   text:'Wooden retaining walls are built on the floor below, around the red outline and the shoring, and sealed to the floor with silicone. They catch the slurry and debris that come through the slab.',
    safety:'Check every seal before cutting. Leaks send alkaline slurry across the floor and into drains.'},
-  {chip:'Connect', title:'Connect water and air', focus:['supply','uhp','compressor','tanks','treat','meter'], flows:['supply'], cut:'none', pool:0, x:200,
-   text:'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps. Compressors are set up for the chippers and membrane pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
+  {chip:'Connect', title:'Connect water and air', focus:['supply','uhp','washpump','compressor','tanks','treat','meter'], flows:['supply'], cut:'none', pool:0, x:200,
+   text:'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps and the smaller washdown pump. Compressors are set up for the chippers and membrane pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
    safety:'Inspect every hose and fitting and fit whip checks on all couplings. Test and tag the backflow device.'},
-  {chip:'Cut', title:'Cut with the robot', focus:['robot','uhp','supply'], flows:['supply','uhp'], cut:'run', pool:.4, excl:true, x:560,
-   text:'The UHP pumps send ultra-high-pressure water to the robot. The nozzle sweeps across the marked area, removing concrete and leaving the rebar in place. Water and debris fall through into containment on the floor below.',
+  {chip:'Cut', title:'Cut with the robot', focus:['robot','uhp','supply'], flows:['supply','uhp'], cut:'run', pool:.4, excl:true, x:640,
+   text:'The UHP pumps send ultra-high-pressure water to the robot. The lance on its front sweeps side to side across the marked area while the robot backs away from the cut, removing concrete and leaving the rebar in place. Water and debris fall through into containment on the floor below.',
    safety:'Exclusion zones around the robot and on the floor below. Nobody under or near the cut while the jet is live. A UHP jet or hose leak can inject water through skin.'},
-  {chip:'Wash & chip', title:'Wash down and chip', focus:['washdown','chipping','compressor'], flows:['supply','wash','airchip'], cut:'done', pool:.5, wash:true, x:760,
-   text:'The crew uses the big washdown hose to push cut material off the slab and down through the opening. Air-powered chipping hammers clean up corners and spots the robot cannot reach.',
+  {chip:'Wash & chip', title:'Wash down and chip', focus:['washdown','washpump','chipping','compressor'], flows:['supply','wash','airchip'], cut:'done', pool:.5, wash:true, x:760,
+   text:'The crew uses the big washdown hose, fed by its own high-volume pump, to push cut material off the slab and down through the opening. Air-powered chipping hammers clean up corners and spots the robot cannot reach.',
    safety:'Only once the robot has stopped. Hearing, eye and face protection; watch your footing at the open edge.'},
   {chip:'Pump', title:'Pump to the settling tanks', focus:['walls','membrane','compressor','tanks'], flows:['airpump','sludge','overflow'], cut:'done', pool:.4, tanks:true, x:860,
    text:'Membrane pumps, driven by compressed air, pull slurry out of containment and send it to the settling tanks. Solids sink to the bottom while water overflows from one container to the next, getting cleaner each time.'},
-  {chip:'Treat', title:'Treat and discharge', focus:['treat','meter','tanks'], flows:['overflow','co2','discharge'], cut:'done', pool:.35, tanks:true, x:1180,
+  {chip:'Treat', title:'Treat and discharge', focus:['treat','meter','tanks'], flows:['overflow','co2','discharge'], cut:'done', pool:.35, tanks:true, x:1170,
    text:'The last container is treated: CO₂ brings down the water\'s high alkalinity (pH), and a demulsifying treatment helps the last fines drop out. Treated water passes through the discharge meter into the sewer, so there is a record of everything that went in.',
    safety:'Stay within the discharge permit. Keep CO₂ cylinders secured and the area ventilated.'},
   {chip:'Haul', title:'Haul away debris', focus:['haul','walls'], flows:[], cut:'done', pool:.2, tanks:true, scoop:true, x:500,
@@ -607,7 +401,8 @@ const STEPS = [
 const GLOSSARY = [
   ['Hydrodemolition','Removing concrete with an ultra-high-pressure water jet. It takes out damaged or weak concrete, leaves sound concrete and rebar in place, and leaves a rough surface that new concrete bonds to well.'],
   ['UHP (ultra-high pressure)','The pressure class of the pumps, hoses and fittings that feed the robot. Far beyond a pressure washer; treat every UHP line as able to cause injury.'],
-  ['Robot','The remote-controlled machine that carries and moves the UHP nozzle.'],
+  ['Robot','The remote-controlled tracked machine that carries the UHP lance on its front and backs away from the cut.'],
+  ['Lance','The nozzle assembly on the front of the robot that sweeps side to side across the cut.'],
   ['Exclusion zone','An area nobody enters while the jet is live: around the robot, and on the floor directly below the cut.'],
   ['Shoring','Temporary supports under a slab, designed by an engineer, that carry load while the slab is weakened.'],
   ['Containment','The sealed walls on the floor below that catch water, slurry and debris.'],
@@ -625,36 +420,311 @@ const GLOSSARY = [
   ['Whip check','A steel cable restraint across a hose coupling, so a hose cannot whip around if a connection fails.'],
 ];
 
-// ---- build scene extras ----
-const NS='http://www.w3.org/2000/svg';
-const mk=(tag,attrs,parent)=>{const el=document.createElementNS(NS,tag); for(const k in attrs) el.setAttribute(k,attrs[k]); if(parent) parent.appendChild(el); return el;};
-
-// rebar stays in place where concrete is removed
-for(let x=405;x<880;x+=16){ mk('circle',{cx:x,cy:309,r:2.4,fill:'var(--steel)'},$('rebar')); mk('circle',{cx:x+8,cy:322,r:2.4,fill:'var(--steel)'},$('rebar')); }
-
-const flowEls={};
-for(const f of FLOWS){
-  const base=mk('path',{d:f.d,class:'hose','stroke-width':f.w+3,'data-flow':f.id},$('hoses'));
-  const ov=mk('path',{d:f.d,class:'flow k-'+f.kind,'stroke-width':f.w-1,'data-flow':f.id},$('flows'));
-  flowEls[f.id]={base,ov};
+// =====================================================================
+// Scene: an oblique 3D cutaway. Every point is (x, v, y): x along the
+// building, v = depth into the page (0 front … 1 back), y = height on the
+// front plane. D is how far one full building depth shifts on screen.
+// =====================================================================
+const NS='http://www.w3.org/2000/svg', DX=52, DY=-40;
+const at=(x,v,y)=>[x+DX*v, y+DY*v];
+const dep=f=>[DX*f, DY*f];             // on-screen depth of an object that is f of the building deep
+const pts=a=>a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ');
+const path=a=>'M'+a.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' L');
+function el(tag,attrs,parent){const e=document.createElementNS(NS,tag); for(const k in attrs) e.setAttribute(k,attrs[k]); if(parent) parent.appendChild(e); return e;}
+function face(par,p,fill,tone){ el('polygon',{points:pts(p),fill,class:'face'},par); if(tone) el('polygon',{points:pts(p),class:tone},par); }
+// box with front-bottom-left at (x,y); d = [dx,dy] on-screen depth of this object
+function box(par,x,y,w,h,fill,d=dep(.45),gloss=true){
+  const [dx,dy]=d, g=el('g',{},par);
+  face(g,[[x,y-h],[x+w,y-h],[x+w+dx,y-h+dy],[x+dx,y-h+dy]],fill,'lit');
+  face(g,[[x+w,y],[x+w,y-h],[x+w+dx,y-h+dy],[x+w+dx,y+dy]],fill,'shd');
+  el('rect',{x,y:y-h,width:w,height:h,fill,class:'face'},g);
+  if(gloss) el('rect',{x,y:y-h,width:w,height:h,fill:'url(#gloss)','pointer-events':'none'},g);
+  return g;
+}
+const R=$('root'), L={};
+['ground','backhose','lower','yard','yhose','cols','slab','hole','paint','tophose','upper','excl','debris','labels','hits'].forEach(k=>L[k]=el('g',{id:'L-'+k},R));
+const partG={};
+function part(k,layer){ const g=el('g',{class:'part','data-part':k},L[layer]); (partG[k]=partG[k]||[]).push(g); return g; }
+function label(k,x,y,text,anchor='start'){
+  const g=part(k,'labels'), n=PARTS[k].n, tx=anchor==='end'?x-18:x+18;
+  const b=el('g',{class:'badge'},g); el('circle',{cx:x,cy:y,r:11},b); el('text',{x,y:y+4,'text-anchor':'middle'},b).textContent=n;
+  el('text',{class:'lbl',x:tx,y:y+4.5,'text-anchor':anchor},g).textContent=text;
+}
+// a crew member with feet at (x,y), drawn in local coords around the feet so tools can be added the same way
+function worker(par,x,y,s=1.3){
+  const g=el('g',{transform:`translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${s})`},par);
+  el('path',{d:'M0,-24 L0,-12 M0,-12 L-6,0 M0,-12 L6,0',fill:'none',stroke:'var(--ink)','stroke-width':3,'stroke-linecap':'round'},g);
+  el('circle',{cx:0,cy:-31,r:6,fill:'var(--ink)'},g);
+  el('path',{d:'M-8,-33 a8,7 0 0 1 16,0z',fill:'var(--equip)',stroke:'var(--edge)','stroke-width':.8},g);
+  return g;
 }
 
-// tap targets: a padded invisible box per part, in one layer under all the parts so a part's
-// visible shapes always win where boxes overlap; plus keyboard access on the part itself
-const hits=mk('g',{id:'hits'}); const firstPart=document.querySelector('#scene .part'); firstPart.parentNode.insertBefore(hits,firstPart);
-document.querySelectorAll('#scene .part').forEach(g=>{
-  const k=g.dataset.part, b=g.getBBox(), pad=8, p=PARTS[k];
-  const r=mk('rect',{class:'hit',x:b.x-pad,y:b.y-pad,width:b.width+pad*2,height:b.height+pad*2,rx:6,'data-part':k},hits);
-  r.addEventListener('click',()=>openPart(k));
-  g.setAttribute('tabindex','0'); g.setAttribute('role','button'); g.setAttribute('aria-label',p.n+'. '+p.name);
-  g.addEventListener('click',()=>openPart(k));
-  g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); openPart(k);}});
-  g.addEventListener('focus',()=>r.classList.add('kb')); g.addEventListener('blur',()=>r.classList.remove('kb'));
-});
+// ---- ground, building floor ----
+face(L.ground,[[-60,560],[385,560],at(385,1,560),at(-60,1,560)],'var(--yard)');
+face(L.ground,[[895,560],[1360,560],at(1360,1,560),at(895,1,560)],'var(--yard)');
+el('rect',{x:0,y:560,width:1300,height:60,fill:'var(--soil)'},L.ground);
+face(L.ground,[at(385,0,560),at(895,0,560),at(895,1,560),at(385,1,560)],'var(--floor)');
+el('rect',{x:385,y:560,width:510,height:14,fill:'var(--conc)',class:'face'},L.ground);
+for(const x of [385,883]){ const [bx,by]=at(x,1,0); el('rect',{x:bx,y:224+by,width:12,height:336,fill:'var(--conc)',opacity:.55},L.ground); }
+el('text',{class:'floorlbl',x:440,y:352},L.ground).textContent='FLOOR BELOW';
 
-// debris particles, reused
-const DEB=[]; for(let i=0;i<24;i++){ const c=mk('rect',{width:4,height:4,x:-10,y:-10,rx:1},$('debris')); DEB.push({el:c,on:false,x:0,y:0,vy:0}); }
-function spawn(x){ const p=DEB.find(d=>!d.on); if(!p) return; p.on=true; p.x=x; p.y=328; p.vy=40+Math.random()*60; }
+// ---- hoses: base tube + highlight + animated flow overlay ----
+// Risers run up outside the left column. Feeders from units further left run higher and take the
+// leftmost riser, so no hose crosses another. On the slab each hose keeps its own depth lane.
+const RW=368, RU=374, RA=380, LANE={uhp:.35, air:.82, wash:.97};
+const CHIP=at(700,.95,300), WASH=at(782,.05,300), PUMP=at(845,.3,560);
+const FLOWS=[
+  {id:'airpump', kind:'air',     w:4, layer:'backhose', d:path([[346,542],[372,542],at(400,.9,560),at(820,.9,560),[PUMP[0]+4,PUMP[1]-26]])},
+  {id:'sludge',  kind:'sludge',  w:5, layer:'backhose', d:path([at(770,.4,552),at(770,.4,486),[PUMP[0]-20,486],[PUMP[0]-20,PUMP[1]-10]])+' '+path([[PUMP[0],PUMP[1]-58],[PUMP[0],476],[910,476],[910,462],[948,458]])},
+  {id:'supply',  kind:'water',   w:5, layer:'yhose',    d:'M40,546 L152,546'},
+  {id:'overflow',kind:'water',   w:5, layer:'yhose',    d:'M1012,488 L1022,488 M1104,488 L1114,488'},
+  {id:'co2',     kind:'co2',     w:3, layer:'yhose',    d:'M1215,492 L1215,482 L1180,482 L1180,520'},
+  {id:'discharge',kind:'treated',w:5, layer:'yhose',    d:'M1196,541 L1236,541 M1264,541 L1282,541 L1282,620'},
+  {id:'wash',    kind:'water',   w:5, layer:'tophose',  d:path([[122,520],[122,430],[RW,430],[RW,299],at(410,LANE.wash,300),at(860,LANE.wash,300),[WASH[0]-10,WASH[1]-20]])},
+  {id:'airchip', kind:'air',     w:4, layer:'tophose',  d:path([[318,484],[318,460],[RA,460],[RA,299],at(425,LANE.air,300),at(686,LANE.air,300),[CHIP[0]-10,CHIP[1]-18]])},
+  {id:'uhp',     kind:'uhp',     w:6, layer:'tophose',  d:''}, // follows the robot; set in tick()
+];
+const flowEls={};
+for(const f of FLOWS){
+  const base=el('path',{d:f.d,class:'hose','stroke-width':f.w+3},L[f.layer]);
+  const shine=el('path',{d:f.d,class:'shine','stroke-width':1.4,transform:'translate(-.8,-1)'},L[f.layer]);
+  const ov=el('path',{d:f.d,class:'flow k-'+f.kind,'stroke-width':f.w-1},L[f.layer]);
+  flowEls[f.id]={base,shine,ov};
+}
+
+// ---- 3 containment, with 2 shoring standing inside it ----
+// draw order: back wall, slurry surface, side walls, shoring posts, then the slurry's cut front
+const CW=[540,800], CV=.85, CH=58;
+let poolTop, poolFront;
+{ const g=part('walls','lower');
+  face(g,[at(CW[0],CV,560-CH),at(CW[1]+6,CV,560-CH),at(CW[1]+6,CV,560),at(CW[0],CV,560)],'var(--wood)','shd');
+  poolTop=el('polygon',{fill:'var(--sludge)',opacity:.9},g);
+  const ch=el('g',{id:'chunks',fill:'var(--conc)',stroke:'var(--edge)','stroke-width':.6,opacity:0},g);
+  [[600,0],[640,6],[684,-4],[712,4],[742,-2],[662,-14]].forEach(([x,o])=>el('path',{d:`M${x},${558+o} l8,-10 l9,4 l4,6z`},ch));
+  for(const x of CW){
+    face(g,[at(x,0,560-CH),at(x+6,0,560-CH),at(x+6,CV,560-CH),at(x,CV,560-CH)],'var(--wood)','lit');
+    face(g,[at(x+6,0,560),at(x+6,0,560-CH),at(x+6,CV,560-CH),at(x+6,CV,560)],'var(--wood)','shd');
+    el('rect',{x,y:560-CH,width:6,height:CH,fill:'var(--wood)',class:'face'},g);
+  }
+  [CW[0]-1,CW[0]+8,CW[1]-1,CW[1]+8].forEach(x=>el('ellipse',{cx:x,cy:558,rx:4,ry:2.6,fill:'var(--seal)'},g));
+}
+{ const g=part('shoring','lower');
+  for(const v of [.7,.2]) for(const x of [565,775]){
+    const [px,py]=at(x,v,560), [,ty]=at(x,v,330);
+    el('rect',{x:px-3,y:ty+4,width:6,height:py-ty-8,fill:'var(--steel)',class:'face'},g);
+    el('rect',{x:px-10,y:ty,width:20,height:5,fill:'var(--wood)',class:'face'},g);
+    el('rect',{x:px-9,y:py-4,width:18,height:4,fill:'var(--wood)',class:'face'},g);
+  }
+}
+poolFront=el('rect',{x:CW[0]+6,width:CW[1]-CW[0]-6,fill:'var(--sludge)',opacity:.95},partG.walls[0]);
+label('shoring',470,404,'SHORING');
+label('walls',560,452,'CONTAINMENT');
+
+// ---- 15 debris haul (skid steer) ----
+{ const g=el('g',{id:'skid'},part('haul','lower'));
+  box(g,410,550,62,24,'var(--equip)',dep(.3));
+  el('path',{d:'M418,526 V506 H450 V526',fill:'none',stroke:'var(--edge)','stroke-width':3},g);
+  el('line',{x1:466,y1:530,x2:490,y2:542,stroke:'var(--steel)','stroke-width':5,'stroke-linecap':'round'},g);
+  el('path',{d:'M484,537 L504,537 L510,557 L486,557z',fill:'var(--steel)',class:'face'},g);
+  [424,456].forEach(cx=>{el('circle',{cx,cy:552,r:9,fill:'var(--hose)',class:'face'},g); el('circle',{cx,cy:552,r:3,fill:'var(--steel)'},g);});
+}
+label('haul',420,474,'DEBRIS HAUL');
+
+// ---- 11 membrane pump: air-operated double-diaphragm pump on a hand truck ----
+{ const g=el('g',{transform:`translate(${PUMP[0].toFixed(1)},${PUMP[1].toFixed(1)})`},part('membrane','lower'));
+  const red='var(--paint-r)';
+  el('path',{d:'M-15,-2 L-11,-84 M15,-2 L11,-84 M-11,-84 Q0,-94 11,-84 M-14,-34 H14 M-12,-62 H12',fill:'none',stroke:red,'stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round'},g);
+  el('rect',{x:-22,y:-5,width:44,height:5,fill:red,class:'face'},g);
+  el('circle',{cx:-22,cy:-8,r:8,fill:'var(--hose)',class:'face'},g); el('circle',{cx:-22,cy:-8,r:3,fill:'var(--steel)'},g);
+  el('rect',{x:-15,y:-16,width:30,height:8,rx:3,fill:'var(--equip)',class:'face'},g);
+  el('path',{d:'M-10,-38 V-52 Q-10,-60 0,-60 Q10,-60 10,-52 V-38',fill:'none',stroke:'var(--equip)','stroke-width':7},g);
+  el('path',{d:'M-10,-38 V-52 Q-10,-60 0,-60 Q10,-60 10,-52 V-38',fill:'none',stroke:'var(--edge)','stroke-width':1,transform:'translate(0,-3.5)',opacity:.5},g);
+  for(const cx of [-11,11]){ el('circle',{cx,cy:-28,r:11,fill:'var(--equip)',class:'face'},g); el('circle',{cx,cy:-28,r:5,fill:'none',stroke:'var(--edge)','stroke-width':1.2},g); }
+  el('rect',{x:-5,y:-40,width:10,height:22,rx:2,fill:'var(--steel)',class:'face'},g);
+  el('circle',{cx:-11,cy:-28,r:11,fill:'url(#gloss)'},g); el('circle',{cx:11,cy:-28,r:11,fill:'url(#gloss)'},g);
+}
+label('membrane',852,430,'MEMBRANE PUMP','end');
+
+// ---- exclusion zones ----
+{ const g=el('g',{id:'excl',opacity:0,'pointer-events':'none'},L.excl);
+  el('polygon',{points:pts([at(590,0,559),at(750,0,559),at(750,.7,559),at(590,.7,559)]),fill:'url(#hatch)',stroke:'var(--bad)','stroke-dasharray':'5 4'},g);
+  el('polygon',{points:pts([at(560,0,299),at(790,0,299),at(790,1,299),at(560,1,299)]),fill:'url(#hatch)',stroke:'var(--bad)','stroke-dasharray':'5 4'},g);
+  el('text',{x:690,y:396,'text-anchor':'middle',class:'mini',fill:'var(--bad)'},g).textContent='EXCLUSION ZONE · NOBODY BELOW';
+}
+
+// ---- 4 supply + backflow ----
+{ const g=part('supply','yard');
+  el('rect',{x:18,y:518,width:18,height:38,rx:4,fill:'var(--paint-r)',class:'face'},g);
+  el('rect',{x:14,y:512,width:26,height:8,rx:3,fill:'var(--paint-r)',class:'face'},g);
+  el('rect',{x:18,y:518,width:18,height:38,rx:4,fill:'url(#cyl)'},g);
+  el('rect',{x:50,y:535,width:42,height:20,rx:7,fill:'var(--seal)',class:'face'},g);
+  el('rect',{x:50,y:535,width:42,height:20,rx:7,fill:'url(#gloss)'},g);
+  el('line',{x1:71,y1:520,x2:71,y2:535,stroke:'var(--steel)','stroke-width':2},g);
+  box(g,59,522,24,17,'var(--surface)',dep(.15),false);
+  el('circle',{cx:71,cy:513,r:5,fill:'none',stroke:'var(--edge)','stroke-width':1.3},g);
+}
+label('supply',22,584,'SUPPLY + BACKFLOW');
+
+// ---- 6 washdown pump: small, high-volume, low-pressure ----
+{ const g=part('washpump','yard');
+  box(g,102,556,40,32,'var(--seal)',dep(.3));
+  el('circle',{cx:118,cy:540,r:9,fill:'none',stroke:'var(--edge)','stroke-width':2},g);
+  el('circle',{cx:118,cy:540,r:3,fill:'var(--edge)'},g);
+}
+label('washpump',70,608,'WASHDOWN PUMP');
+
+// ---- 5 UHP pump unit (container) ----
+{ const g=part('uhp','yard');
+  box(g,152,556,112,84,'var(--cont)',dep(.55));
+  for(let x=161;x<260;x+=9) el('line',{x1:x,y1:478,x2:x,y2:550,stroke:'var(--edge)','stroke-width':.8,opacity:.5},g);
+  el('rect',{x:152,y:472,width:42,height:10,fill:'var(--equip)',class:'face'},g);
+  el('rect',{x:204,y:494,width:50,height:26,rx:2,fill:'var(--surface)',class:'face'},g);
+  el('text',{x:229,y:512,'text-anchor':'middle',style:'font:700 14px var(--f-mono);fill:var(--ink)'},g).textContent='UHP';
+}
+label('uhp',214,584,'UHP PUMPS');
+
+// ---- 7 compressor ----
+{ const g=part('compressor','yard');
+  box(g,276,556,70,60,'var(--equip)',dep(.4));
+  for(let x=285;x<312;x+=7) el('line',{x1:x,y1:506,x2:x,y2:548,stroke:'var(--edge)','stroke-width':1.2,opacity:.6},g);
+  el('text',{x:328,y:532,'text-anchor':'middle',style:'font:700 13px var(--f-mono);fill:var(--edge)'},g).textContent='AIR';
+}
+label('compressor',258,608,'COMPRESSOR');
+
+// ---- 12–13 tanks (cutaway fronts show the liquid layers) ----
+function tank(g,x,liquid,sedH,id){
+  const w=82,h=78,y=556,d=dep(.5);
+  face(g,[[x,y-h],[x+w,y-h],[x+w+d[0],y-h+d[1]],[x+d[0],y-h+d[1]]],'var(--tank)','shd'); // open top (inside)
+  const lq=el('g',{class:'tw',id},g);
+  face(lq,[[x+3,y-h+10],[x+w-3,y-h+10],[x+w-3+d[0],y-h+10+d[1]],[x+3+d[0],y-h+10+d[1]]],liquid,'lit');
+  face(g,[[x+w,y],[x+w,y-h],[x+w+d[0],y-h+d[1]],[x+w+d[0],y+d[1]]],'var(--tank)','shd');
+  el('rect',{x,y:y-h,width:w,height:h,fill:'var(--tank)',class:'face'},g);
+  el('rect',{x:x+3,y:y-h+10,width:w-6,height:h-13,fill:liquid,opacity:.85},lq);
+  el('rect',{x:x+3,y:y-3-sedH,width:w-6,height:sedH,fill:'var(--sludge)'},lq);
+  for(let i=1;i<4;i++) el('line',{x1:x+w*i/4,y1:y-h,x2:x+w*i/4,y2:y,stroke:'var(--edge)','stroke-width':.8,opacity:.45},g);
+  el('rect',{x,y:y-h,width:w,height:h,fill:'url(#gloss)','pointer-events':'none'},g);
+  el('rect',{x,y:y-h,width:w,height:h,fill:'none',class:'face'},g);
+}
+{ const g=part('tanks','yard'); tank(g,930,'var(--sludge)',16,'t1'); tank(g,1022,'var(--water)',9,'t2');
+  el('text',{x:984,y:450,'text-anchor':'middle',class:'mini',fill:'var(--muted)'},g).textContent='TANK 1';
+  el('text',{x:1076,y:450,'text-anchor':'middle',class:'mini',fill:'var(--muted)'},g).textContent='TANK 2'; }
+label('tanks',938,584,'SETTLING TANKS');
+{ const g=part('treat','yard'); tank(g,1114,'var(--treated)',4,'t3');
+  const b=el('g',{id:'bubbles'},g);
+  [[1130,0],[1146,.5],[1162,1],[1178,1.3],[1138,.25]].forEach(([cx,dl])=>el('circle',{class:'bub',cx,cy:548,r:2.5,style:`animation-delay:${dl}s`},b));
+  el('rect',{x:1208,y:496,width:14,height:60,rx:7,fill:'var(--co2)',class:'face'},g);
+  el('rect',{x:1208,y:496,width:14,height:60,rx:7,fill:'url(#cyl)'},g);
+  el('rect',{x:1212,y:489,width:6,height:8,fill:'var(--steel)'},g);
+  el('text',{x:1168,y:450,'text-anchor':'middle',class:'mini',fill:'var(--muted)'},g).textContent='TANK 3 · CO₂';
+}
+label('treat',1120,584,'CO₂ TREATMENT');
+
+// ---- 14 meter ----
+{ const g=part('meter','yard');
+  box(g,1236,556,28,30,'var(--surface)',dep(.2),false);
+  el('circle',{cx:1250,cy:541,r:8,fill:'none',stroke:'var(--edge)','stroke-width':1.5},g);
+  el('line',{id:'mneedle',x1:1250,y1:541,x2:1250,y2:535,stroke:'var(--bad)','stroke-width':2,'stroke-linecap':'round'},g);
+  el('text',{x:1274,y:604,'text-anchor':'end',class:'mini',fill:'var(--muted)'},g).textContent='TO SEWER';
+}
+label('meter',1254,492,'METER','end');
+
+// ---- front columns ----
+for(const x of [385,883]){ box(L.cols,x,560,12,230,'var(--conc)',dep(.2),false); box(L.cols,x,300,12,64,'var(--conc)',dep(.2),false); }
+
+// ---- upper slab: top face with a hole that grows as the robot cuts, front section with rebar ----
+const DEMO=[590,750], HV=.7;
+const slabTop=el('path',{fill:'var(--conc)','fill-rule':'evenodd',class:'face'},L.slab);
+const slabTopLit=el('path',{class:'lit','fill-rule':'evenodd'},L.slab);
+face(L.slab,[at(895,0,300),at(895,1,300),at(895,1,330),at(895,0,330)],'var(--conc)','shd');
+const slabFront=el('path',{fill:'var(--conc)',class:'face'},L.slab);
+const holeBack=el('polygon',{fill:'var(--conc)',class:'face'},L.hole), holeBackS=el('polygon',{class:'shd'},L.hole);
+const holeSide=el('polygon',{fill:'var(--conc)',class:'face'},L.hole), holeSideS=el('polygon',{class:'shd',style:'opacity:.35'},L.hole);
+const rebarHole=el('g',{stroke:'var(--steel)','stroke-width':2.2,'stroke-linecap':'round'},L.hole);
+{ const g=el('g',{fill:'var(--steel)'},L.hole); for(let x=393;x<893;x+=16){ el('circle',{cx:x,cy:309,r:2.3},g); el('circle',{cx:x+8,cy:321,r:2.3},g); } }
+let lastFx=null;
+function drawSlab(fx){
+  if(lastFx!==null && Math.abs(fx-lastFx)<.3) return; lastFx=fx;
+  const open=fx<DEMO[1]-.5;
+  let d=path([at(385,0,300),at(895,0,300),at(895,1,300),at(385,1,300)])+'Z';
+  if(open) d+=' '+path([at(fx,0,300),at(DEMO[1],0,300),at(DEMO[1],HV,300),at(fx,HV,300)])+'Z';
+  slabTop.setAttribute('d',d); slabTopLit.setAttribute('d',d);
+  slabFront.setAttribute('d',open?`M385,300 H${fx} V330 H385Z M${DEMO[1]},300 H895 V330 H${DEMO[1]}Z`:'M385,300 H895 V330 H385Z');
+  const bk=[at(fx,HV,300),at(DEMO[1],HV,300),at(DEMO[1],HV,330),at(fx,HV,330)], sd=[at(fx,0,300),at(fx,HV,300),at(fx,HV,330),at(fx,0,330)];
+  for(const [a,b,p] of [[holeBack,holeBackS,bk],[holeSide,holeSideS,sd]]){ a.setAttribute('points',open?pts(p):''); b.setAttribute('points',open?pts(p):''); }
+  let r='';
+  if(open){
+    const ln=(a,b)=>`<line x1="${a[0].toFixed(1)}" y1="${a[1].toFixed(1)}" x2="${b[0].toFixed(1)}" y2="${b[1].toFixed(1)}"/>`;
+    for(let x=598;x<DEMO[1];x+=16) if(x>fx) r+=ln(at(x,0,315),at(x,HV,315));
+    for(const v of [.22,.48]) r+=ln(at(fx,v,316),at(DEMO[1],v,316));
+  }
+  rebarHole.innerHTML=r;
+}
+
+// ---- 1 layout paint: green outline on top, red along the underside ----
+{ const g=part('paint','paint');
+  el('polygon',{points:pts([at(DEMO[0],0,299.5),at(DEMO[1],0,299.5),at(DEMO[1],HV,299.5),at(DEMO[0],HV,299.5)]),fill:'none',stroke:'var(--paint-g)','stroke-width':3,'stroke-dasharray':'9 4'},g);
+  el('line',{x1:DEMO[0],y1:331.5,x2:DEMO[1],y2:331.5,stroke:'var(--paint-r)','stroke-width':3.5,'stroke-dasharray':'9 4'},g);
+}
+label('paint',604,354,'LAYOUT PAINT');
+
+// ---- 8 robot: lance on the front, backs away (to the left) as it cuts ----
+const RV=LANE.uhp, [ROX,ROY]=dep(RV);
+const robotG=part('robot','upper'), robot=el('g',{},robotG);
+box(robot,-128,300,94,13,'var(--hose)',dep(.3));
+[-120,-102,-84,-66,-48].forEach(cx=>el('circle',{cx,cy:306.5,r:3.2,fill:'var(--steel)'},robot));
+box(robot,-120,287,72,30,'var(--equip)',dep(.3));
+el('rect',{x:-112,y:263,width:22,height:13,rx:2,fill:'var(--surface)',class:'face'},robot);
+el('rect',{x:-82,y:262,width:26,height:4,fill:'var(--edge)',opacity:.5},robot);
+el('path',{d:'M-48,266 L-18,258 L-4,262',fill:'none',stroke:'var(--steel)','stroke-width':7,'stroke-linecap':'round','stroke-linejoin':'round'},robot);
+const lance=el('g',{},robot);
+box(lance,-8,272,16,14,'var(--steel)',dep(.15),false);
+el('line',{x1:0,y1:272,x2:0,y2:294,stroke:'var(--edge)','stroke-width':4},lance);
+const jet=el('g',{id:'jet',style:'display:none'},lance);
+el('line',{x1:0,y1:294,x2:0,y2:301,stroke:'var(--water)','stroke-width':3},jet);
+[[-6,297],[6,295],[-3,291],[4,300]].forEach(([cx,cy])=>el('circle',{cx,cy,r:1.8},jet));
+label('robot',452,214,'ROBOT');
+
+// ---- 10 chipping: standing behind the opening, breaking out its back edge ----
+{ const w=worker(part('chipping','upper'),CHIP[0],CHIP[1]);
+  el('path',{d:'M0,-20 L-9,-15',fill:'none',stroke:'var(--ink)','stroke-width':3,'stroke-linecap':'round'},w);
+  const c=el('g',{id:'chip'},w);
+  el('line',{x1:-9,y1:-19,x2:-12,y2:6,stroke:'var(--steel)','stroke-width':4,'stroke-linecap':'round'},c);
+  el('line',{x1:-14,y1:-19,x2:-4,y2:-19,stroke:'var(--steel)','stroke-width':3,'stroke-linecap':'round'},c);
+}
+label('chipping',780,190,'CHIPPING','end');
+
+// ---- 9 washdown: front-right corner of the opening, wand aimed down into it ----
+{ const w=worker(part('washdown','upper'),WASH[0],WASH[1]);
+  el('path',{d:'M0,-20 L-11,-16',fill:'none',stroke:'var(--ink)','stroke-width':3,'stroke-linecap':'round'},w);
+  el('line',{x1:-9,y1:-17,x2:-28,y2:-9,stroke:'var(--steel)','stroke-width':3.5,'stroke-linecap':'round'},w);
+  const s=el('g',{id:'spray','pointer-events':'none'},w);
+  ['M-28,-9 L-44,14','M-28,-9 L-36,20','M-28,-9 L-50,6'].forEach(d=>el('path',{d},s));
+}
+label('washdown',812,246,'WASHDOWN');
+
+// ---- debris particles, reused ----
+const DEB=[]; for(let i=0;i<26;i++){ const r=el('rect',{width:4,height:4,x:-10,y:-10,rx:1,fill:'var(--conc)',stroke:'var(--edge)','stroke-width':.5},L.debris); DEB.push({el:r,on:false,x:0,y:0,vy:0}); }
+function spawn(x){ const p=DEB.find(d=>!d.on); if(!p) return; p.on=true; p.x=x; p.y=318; p.vy=40+Math.random()*60; }
+
+// ---- tap targets: one padded box per part, under the parts so visible shapes win ----
+L.hits.remove(); R.insertBefore(L.hits,L.ground.nextSibling);
+for(const k in partG){
+  let r=null;
+  if(k!=='robot'){ // the robot moves, so its own shapes and label take the taps
+    let x0=1e9,y0=1e9,x1=-1e9,y1=-1e9;
+    for(const g of partG[k]){ const b=g.getBBox(); x0=Math.min(x0,b.x); y0=Math.min(y0,b.y); x1=Math.max(x1,b.x+b.width); y1=Math.max(y1,b.y+b.height); }
+    const pad=6; r=el('rect',{class:'hit',x:x0-pad,y:y0-pad,width:x1-x0+pad*2,height:y1-y0+pad*2,rx:6},L.hits);
+    r.addEventListener('click',()=>openPart(k));
+  }
+  const p=PARTS[k];
+  partG[k].forEach((g,i)=>{
+    g.addEventListener('click',()=>openPart(k));
+    if(i>0) return;
+    g.setAttribute('tabindex','0'); g.setAttribute('role','button'); g.setAttribute('aria-label',p.n+'. '+p.name);
+    g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault(); openPart(k);}});
+    if(r){ g.addEventListener('focus',()=>r.classList.add('kb')); g.addEventListener('blur',()=>r.classList.remove('kb')); }
+  });
+}
 
 // ---- step bar, parts list, glossary, handout ----
 $('steps').innerHTML=STEPS.map((s,i)=>`<li><button type="button" data-i="${i}">${i?`<b>${i}</b>`:''}${esc(s.chip)}</button></li>`).join('');
@@ -693,15 +763,15 @@ const S=()=>STEPS[stepIdx];
 function setStep(i,instant){
   stepIdx=Math.max(0,Math.min(STEPS.length-1,i));
   const s=S(), all=s.focus==='all';
-  document.querySelectorAll('#scene .part').forEach(g=>g.classList.toggle('dim',!all&&!s.focus.includes(g.dataset.part)));
-  for(const id in flowEls){ const on=s.flows.includes(id); flowEls[id].ov.classList.toggle('on',on); flowEls[id].base.classList.toggle('dimh',!all&&!on); }
+  for(const k in partG) partG[k].forEach(g=>g.classList.toggle('dim',!all&&!s.focus.includes(k)));
+  for(const id in flowEls){ const on=s.flows.includes(id), f=flowEls[id]; f.ov.classList.toggle('on',on); f.base.classList.toggle('dimh',!all&&!on); f.shine.classList.toggle('dimh',!all&&!on); }
   $('chip').classList.toggle('on',s.flows.includes('airchip'));
   $('spray').classList.toggle('on',!!s.wash);
   $('bubbles').classList.toggle('on',s.flows.includes('co2'));
   $('mneedle').classList.toggle('on',s.flows.includes('discharge'));
   $('skid').classList.toggle('on',!!s.scoop);
   $('excl').setAttribute('opacity',s.excl?1:0);
-  ['t1w','t1s','t2w','t2s','t3w'].forEach(id=>$(id).style.opacity=s.tanks?'':'0');
+  ['t1','t2','t3'].forEach(id=>$(id).style.opacity=s.tanks?'':'0');
   if(s.cut==='run'){cutP=0;hold=0;}
 
   $('s-kicker').textContent=stepIdx?`Step ${stepIdx} of ${STEPS.length-1}`:'Overview';
@@ -736,34 +806,47 @@ document.addEventListener('keydown',e=>{
   if(e.key==='ArrowLeft') setStep(stepIdx-1);
 });
 
-// ---- animation loop: cut progress, robot carriage, debris, slurry level ----
+// ---- animation loop ----
+// The robot starts with its lance over the far edge of the demo area and backs left as it cuts:
+// fx is the cut front (concrete is gone from fx to the far edge), nx is where the lance is.
+let lastHose='';
 function tick(ts){
   const dt=last===null?0:Math.min(.05,(ts-last)/1000); last=ts; clock+=dt;
-  const s=S(); let cutting=false, cx=560;
-  if(s.cut==='none'){cutP=0;}
-  else if(s.cut==='done'){cutP=1; cx=720;}
-  else if(s.cut==='sweep'){cutP=.6; cx=560+96+(REDUCE?0:7*Math.sin(clock*3)); cutting=true;}
-  else if(REDUCE){cutP=.6; cx=656; cutting=true;}
-  else if(cutP<1){cutP=Math.min(1,cutP+dt/9); cx=560+160*cutP; cutting=true;}
-  else {cx=720; hold+=dt; if(hold>2.5){cutP=0;hold=0;}}
-  $('carr').setAttribute('transform',`translate(${cx.toFixed(1)},0)`);
-  $('rm').setAttribute('width',(160*cutP).toFixed(1));
-  $('jet').style.display=cutting?'':'none';
+  const s=S(), W=DEMO[1]-DEMO[0];
+  let cutting=false, fx=DEMO[1], nx=DEMO[1];
+  if(s.cut==='done'){ fx=DEMO[0]; nx=530; }
+  else if(s.cut==='sweep'){ fx=DEMO[1]-.45*W; nx=fx; cutting=true; }
+  else if(s.cut==='run'){
+    if(REDUCE){ fx=DEMO[1]-.5*W; cutting=true; }
+    else if(cutP<1){ cutP=Math.min(1,cutP+dt/9); fx=DEMO[1]-W*cutP; cutting=true; }
+    else { fx=DEMO[0]; hold+=dt; if(hold>2.5){cutP=0;hold=0;} }
+    nx=fx;
+  }
+  drawSlab(fx);
+  robot.setAttribute('transform',`translate(${(nx+ROX).toFixed(1)},${ROY.toFixed(1)})`);
+  // the lance sweeps side to side, which in this view is in and out of the page
+  const sw=cutting&&!REDUCE?Math.sin(clock*4)*.28:0;
+  lance.setAttribute('transform',`translate(${(DX*sw).toFixed(1)},${(DY*sw).toFixed(1)})`);
+  jet.style.display=cutting?'':'none';
+
+  const rear=nx+ROX-128, ly=300+DY*LANE.uhp, hose=path([[232,462],[232,444],[RU,444],[RU,299],at(400,LANE.uhp,300),[rear,ly]]);
+  if(hose!==lastHose){ lastHose=hose; const f=flowEls.uhp; f.base.setAttribute('d',hose); f.shine.setAttribute('d',hose); f.ov.setAttribute('d',hose); }
 
   const target=s.cut==='none'?0:s.cut==='run'?.08+.4*cutP:s.pool;
   level+=(target-level)*Math.min(1,dt*1.5||1);
-  const h=level*68, top=560-h;
-  $('pool').setAttribute('y',top.toFixed(1)); $('pool').setAttribute('height',h.toFixed(1));
+  const h=level*46, top=560-h;
+  poolTop.setAttribute('points',pts([at(CW[0]+6,0,top),at(CW[1],0,top),at(CW[1],CV,top),at(CW[0]+6,CV,top)]));
+  poolFront.setAttribute('y',top.toFixed(1)); poolFront.setAttribute('height',h.toFixed(1));
   $('chunks').setAttribute('opacity',level>.06?1:0);
 
   if(!REDUCE){
-    if(cutting&&Math.random()<dt*16) spawn(cx-4+Math.random()*8);
-    if(s.wash&&Math.random()<dt*7) spawn(566+Math.random()*148);
+    if(cutting&&Math.random()<dt*16) spawn(fx+6+Math.random()*22);
+    if(s.wash&&Math.random()<dt*7) spawn(DEMO[0]+10+Math.random()*(W-10));
   }
   for(const p of DEB){
     if(!p.on) continue;
     p.vy+=500*dt; p.y+=p.vy*dt;
-    if(p.y>=top-2){p.on=false; p.el.setAttribute('x',-10); continue;}
+    if(p.y>=top-6){p.on=false; p.el.setAttribute('x',-10); continue;}
     p.el.setAttribute('x',p.x.toFixed(1)); p.el.setAttribute('y',p.y.toFixed(1));
   }
   requestAnimationFrame(tick);
