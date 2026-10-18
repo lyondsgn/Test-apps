@@ -45,7 +45,7 @@ Anything that relies on the left column only (relative files, folders, a backend
 
 ## 2. Navigation (MUST)
 
-10. **Never hardcode a link to another app.** Use the `appUrl()` helper (copy from `index.html`), which produces:
+10. **Never hardcode a link to another app.** Use the `appUrl()` helper (copy from `index.html`) and set `HOME` to the path from your page up to the repo root (`''` at the root, `'../'` one folder down). Pass repo-relative paths (`appUrl('index.html')`). It produces:
     - GitHub: the relative path, e.g. `DrumPhysics/mixer-drum-torque-calculator.html`
     - Quickbase: `?a=dbpage&pagename=mixer-drum-torque-calculator.html`
 11. **Register every new app** in the `APPS` array in `index.html` (`id`, `name`, `file`, `desc`, `status`, `features`).

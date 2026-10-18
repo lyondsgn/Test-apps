@@ -88,13 +88,23 @@ const APPS = [
     status: 'Prototype',
     features: ['calculator'],
   },
+  {
+    id: 'hydrodemolition-101',
+    name: 'Hydrodemolition 101',
+    file: 'Hydro101/hydrodemolition-101.html',
+    desc: 'Animated cross-section of a hydrodemolition job, from layout paint to treated discharge. Step through the process or tap any piece of equipment.',
+    status: 'Prototype',
+    features: ['training', 'animation', 'printable'],
+  },
 ];
 
 // ---- environment + links (copy this block into any app that links elsewhere) ----
 const ON_QB = /\.quickbase\.com$/i.test(location.hostname);
-// GitHub: relative path. Quickbase: flat code-page name, so only the file name matters.
+// Path from this page up to the repo root: '' here, '../' for an app inside one folder.
+const HOME = '';
+// GitHub: repo-relative path. Quickbase: flat code-page name, so only the file name matters.
 function appUrl(file){
-  return ON_QB ? '?a=dbpage&pagename=' + encodeURIComponent(file.split('/').pop()) : file;
+  return ON_QB ? '?a=dbpage&pagename=' + encodeURIComponent(file.split('/').pop()) : HOME + file;
 }
 
 const $ = id => document.getElementById(id);
