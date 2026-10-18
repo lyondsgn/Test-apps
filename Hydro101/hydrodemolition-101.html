@@ -145,6 +145,12 @@ h3{font:600 1.1rem/1.2 var(--f-display);letter-spacing:.02em;margin:0}
 .parts button:hover{border-color:var(--accent)}
 .num{flex:0 0 auto;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--surface);font:600 12.5px var(--f-mono)}
 
+/* collapsible sections */
+.fold summary{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::before{content:"▸";color:var(--muted);transition:transform .15s}
+.fold[open] summary::before{transform:rotate(90deg)}
+
 /* glossary */
 .gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px 28px;margin:12px 0 0}
 .gloss div{break-inside:avoid}
@@ -253,17 +259,17 @@ dialog::backdrop{background:rgba(10,14,17,.5)}
     </div>
   </section>
 
-  <section class="panel no-print" aria-labelledby="parts-h">
-    <h2 id="parts-h">Equipment and parts</h2>
+  <details class="panel fold no-print">
+    <summary><h2>Equipment and parts</h2></summary>
     <ul class="parts" id="parts"></ul>
-  </section>
+  </details>
 
   <section id="handout" aria-hidden="true"></section>
 
-  <section class="panel glossary" aria-labelledby="gloss-h">
-    <h2 id="gloss-h">Glossary</h2>
+  <details class="panel fold glossary" id="gloss-d">
+    <summary><h2>Glossary</h2></summary>
     <dl class="gloss" id="gloss"></dl>
-  </section>
+  </details>
 </div>
 
 <dialog id="dlg" aria-labelledby="d-title">
@@ -349,9 +355,9 @@ const PARTS = {
     why:'Most of the concrete fines are caught here instead of going to the sewer. Settled solids are dug out and hauled away.',
     links:['Membrane pumps (in)','CO₂ treatment tank (out)']},
   treat: {n:13, name:'CO₂ treatment and pH adjustment',
-    what:'The last container. CO₂ is bubbled into the water to bring down its alkalinity (pH), and a demulsifying treatment helps the last fines drop out.',
+    what:'The last container. CO₂ is bubbled into the water to bring down its alkalinity (pH), and a demulsifying treatment helps the last fines drop out. A PLC controller on a stand beside the tank reads the pH and doses the CO₂ automatically to keep it in range.',
     why:'Water that has touched concrete is strongly alkaline. The sewer permit limits pH, so it has to be brought back into range before discharge.',
-    links:['Settling tanks (in)','CO₂ cylinders','Discharge meter (out)'],
+    links:['Settling tanks (in)','CO₂ cylinders, dosed by the PLC controller','Discharge meter (out)'],
     safety:'CO₂ displaces oxygen. Keep cylinders secured and upright, and the area ventilated.'},
   meter: {n:14, name:'Discharge meter',
     what:'Measures how much treated water we send to the sewer.',
@@ -412,6 +418,7 @@ const GLOSSARY = [
   ['Settling tank','A container where solids sink out of the water before it moves on.'],
   ['pH / alkalinity','How basic the water is. Water from concrete is strongly alkaline (high pH) and has to be brought into the permit range before discharge.'],
   ['CO₂ treatment','Bubbling carbon dioxide into the water to lower its pH.'],
+  ['PLC controller','The control box on the treatment tank. It reads the water\'s pH and opens or closes the CO₂ supply automatically.'],
   ['Demulsifier','A treatment that breaks up suspended fines so they drop out of the water.'],
   ['Backflow preventer','A valve assembly that stops water from flowing back into the supply it came from.'],
   ['Discharge meter / permit','The meter records how much water goes to the sewer; the permit sets the limits on volume and quality.'],
@@ -419,6 +426,17 @@ const GLOSSARY = [
   ['Rebar','Steel reinforcing bars in the slab. Hydrodemolition leaves them in place and clean.'],
   ['Whip check','A steel cable restraint across a hose coupling, so a hose cannot whip around if a connection fails.'],
 ];
+
+// ---- step bar, parts list, glossary, handout (text first, so a drawing problem can never blank them) ----
+$('steps').innerHTML=STEPS.map((s,i)=>`<li><button type="button" data-i="${i}">${i?`<b>${i}</b>`:''}${esc(s.chip)}</button></li>`).join('');
+$('steps').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setStep(+b.dataset.i);});
+const ORDER=Object.keys(PARTS).sort((a,b)=>PARTS[a].n-PARTS[b].n);
+$('parts').innerHTML=ORDER.map(k=>`<li><button type="button" data-part="${k}"><span class="num">${PARTS[k].n}</span>${esc(PARTS[k].name)}</button></li>`).join('');
+$('parts').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) openPart(b.dataset.part);});
+$('gloss').innerHTML=GLOSSARY.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('');
+$('handout').innerHTML=
+  `<h2>Process, step by step</h2><ol>${STEPS.slice(1).map(s=>`<li><b>${esc(s.title)}.</b> ${esc(s.text)}${s.safety?` <i>Safety: ${esc(s.safety)}</i>`:''}</li>`).join('')}</ol>`+
+  `<h2>Equipment and parts</h2>`+ORDER.map(k=>{const p=PARTS[k]; return `<div class="hp"><h3>${p.n}. ${esc(p.name)}</h3><div>${esc(p.what)} ${esc(p.why)}</div><div><b>Connects to:</b> ${p.links.map(esc).join('; ')}.</div>${p.safety?`<div><i>Safety: ${esc(p.safety)}</i></div>`:''}</div>`;}).join('');
 
 // =====================================================================
 // Scene: an oblique 3D cutaway. Every point is (x, v, y): x along the
@@ -616,6 +634,20 @@ label('tanks',938,584,'SETTLING TANKS');
   el('rect',{x:1208,y:496,width:14,height:60,rx:7,fill:'url(#cyl)'},g);
   el('rect',{x:1212,y:489,width:6,height:8,fill:'var(--steel)'},g);
   el('text',{x:1168,y:450,'text-anchor':'middle',class:'mini',fill:'var(--muted)'},g).textContent='TANK 3 · CO₂';
+  // PLC controller on a strut stand in front of the tank: clear-door enclosure, display, gauges, beacon, reagent bottles
+  const c=el('g',{},g), blk='var(--hose)';
+  el('rect',{x:1140,y:551,width:46,height:5,fill:'var(--wood)',class:'face'},c);
+  [1144,1180].forEach(x=>el('rect',{x,y:494,width:4,height:57,fill:blk,class:'face'},c));
+  el('rect',{x:1144,y:530,width:40,height:3,fill:blk},c);
+  box(c,1146,528,36,32,'var(--surface)',dep(.12),false);
+  el('rect',{x:1146,y:496,width:36,height:32,fill:'var(--water)',opacity:.12,'pointer-events':'none'},c);
+  el('rect',{x:1151,y:500,width:16,height:6,rx:1,fill:'#0d2236'},c);
+  el('text',{x:1159,y:505,'text-anchor':'middle',style:'font:600 5.5px var(--f-mono);fill:#5fd0ff'},c).textContent='7.2pH';
+  [[1155,516],[1155,524]].forEach(([cx,cy])=>{el('circle',{cx,cy,r:3.2,fill:'#fff',stroke:'var(--edge)','stroke-width':.8},c);});
+  el('rect',{x:1170,y:510,width:7,height:14,rx:1,fill:'none',stroke:'var(--edge)','stroke-width':.8},c);
+  el('path',{d:'M1162,494 a4,4 0 0 1 8,0z',fill:'var(--warn)',stroke:'var(--edge)','stroke-width':.6},c);
+  el('rect',{x:1150,y:486,width:5,height:9,rx:1.5,fill:'#f2e3a0',stroke:'var(--edge)','stroke-width':.6},c);
+  el('text',{x:1164,y:546,'text-anchor':'middle',class:'mini',style:'font-size:8px',fill:'var(--ink)'},c).textContent='PLC';
 }
 label('treat',1120,584,'CO₂ TREATMENT');
 
@@ -626,7 +658,7 @@ label('treat',1120,584,'CO₂ TREATMENT');
   el('line',{id:'mneedle',x1:1250,y1:541,x2:1250,y2:535,stroke:'var(--bad)','stroke-width':2,'stroke-linecap':'round'},g);
   el('text',{x:1274,y:604,'text-anchor':'end',class:'mini',fill:'var(--muted)'},g).textContent='TO SEWER';
 }
-label('meter',1254,492,'METER','end');
+label('meter',1150,608,'METER');
 
 // ---- front columns ----
 for(const x of [385,883]){ box(L.cols,x,560,12,230,'var(--conc)',dep(.2),false); box(L.cols,x,300,12,64,'var(--conc)',dep(.2),false); }
@@ -726,16 +758,6 @@ for(const k in partG){
   });
 }
 
-// ---- step bar, parts list, glossary, handout ----
-$('steps').innerHTML=STEPS.map((s,i)=>`<li><button type="button" data-i="${i}">${i?`<b>${i}</b>`:''}${esc(s.chip)}</button></li>`).join('');
-$('steps').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setStep(+b.dataset.i);});
-const ORDER=Object.keys(PARTS).sort((a,b)=>PARTS[a].n-PARTS[b].n);
-$('parts').innerHTML=ORDER.map(k=>`<li><button type="button" data-part="${k}"><span class="num">${PARTS[k].n}</span>${esc(PARTS[k].name)}</button></li>`).join('');
-$('parts').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) openPart(b.dataset.part);});
-$('gloss').innerHTML=GLOSSARY.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('');
-$('handout').innerHTML=
-  `<h2>Process, step by step</h2><ol>${STEPS.slice(1).map(s=>`<li><b>${esc(s.title)}.</b> ${esc(s.text)}${s.safety?` <i>Safety: ${esc(s.safety)}</i>`:''}</li>`).join('')}</ol>`+
-  `<h2>Equipment and parts</h2>`+ORDER.map(k=>{const p=PARTS[k]; return `<div class="hp"><h3>${p.n}. ${esc(p.name)}</h3><div>${esc(p.what)} ${esc(p.why)}</div><div><b>Connects to:</b> ${p.links.map(esc).join('; ')}.</div>${p.safety?`<div><i>Safety: ${esc(p.safety)}</i></div>`:''}</div>`;}).join('');
 
 // ---- part pop-up ----
 const dlg=$('dlg');
@@ -855,8 +877,10 @@ function tick(ts){
 // ---- print handout: always the full-operation view ----
 let beforePrint=null;
 $('print').addEventListener('click',()=>window.print());
-window.addEventListener('beforeprint',()=>{beforePrint=stepIdx; setStep(0);});
-window.addEventListener('afterprint',()=>{if(beforePrint!==null) setStep(beforePrint); beforePrint=null;});
+// the handout always includes the glossary, so open it for printing and put it back after
+let glossWasOpen=false;
+window.addEventListener('beforeprint',()=>{beforePrint=stepIdx; setStep(0); glossWasOpen=$('gloss-d').open; $('gloss-d').open=true;});
+window.addEventListener('afterprint',()=>{if(beforePrint!==null) setStep(beforePrint); beforePrint=null; $('gloss-d').open=glossWasOpen;});
 
 const m=location.hash.match(/step=(\d+)/);
 setStep(m?+m[1]:0,true);
