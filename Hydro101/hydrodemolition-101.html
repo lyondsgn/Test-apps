@@ -1,12 +1,13 @@
 <!doctype html>
 <html lang="en">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
-<meta name="referrer" content="no-referrer">
-<title>Hydrodemolition 101</title>
-<!--
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+    <meta name="referrer" content="no-referrer">
+    <title>Hydrodemolition 101</title>
+    <!--
   app-id:    hydrodemolition-101
   version:   0.3.0
   owner:     lyondsgn
@@ -15,211 +16,949 @@
   externals: Google Fonts (system-font fallback)
   qb-tables: none
 -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
-<style>
-:root{
-  --bg:#eef0f2; --surface:#fbfcfc; --ink:#1b2227; --muted:#5a6670; --line:#d5dbdf; --grid:#e3e7ea;
-  --accent:#1d5c96; --warn:#a8690f; --bad:#b42318;
-  --edge:#2a3238; --conc:#bdb7aa; --floor:#d3cdc1; --yard:#e0dbd0; --soil:#c9bca4;
-  --steel:#5b666f; --cont:#56626c; --tank:#8b969f; --hose:#3f474e;
-  --equip:#e2ad2c; --wood:#b9874f; --seal:#5d7f9a; --robot:#d4d8db; --robot-pnl:#e8e3d2;
-  --water:#2a7fc1; --uhp:#7048c0; --air:#8d99a3; --sludge:#8a6a3d; --treated:#1f9e8f; --co2:#b8c1c8;
-  --paint-g:#2e9e4f; --paint-r:#c8372d;
-  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
-  --f-body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
-  --f-mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
-  color-scheme:light;
-}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
-  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
-  --accent:#6aa9e6; --warn:#e0a43a; --bad:#f07360;
-  --edge:#0b0e10; --conc:#77726a; --floor:#55514a; --yard:#2c2a26; --soil:#211e1a;
-  --steel:#8e9aa3; --cont:#46525c; --tank:#67737c; --hose:#2a3035;
-  --equip:#d39f2a; --wood:#a87a46; --seal:#7fa3c0; --robot:#aeb4b9; --robot-pnl:#c4bfae;
-  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#9aa5ae;
-  --paint-g:#4cc070; --paint-r:#f07360; color-scheme:dark}}
-:root[data-theme="dark"]{
-  --bg:#13171a; --surface:#1b2125; --ink:#e3e8eb; --muted:#95a1aa; --line:#2e373d; --grid:#262e33;
-  --accent:#6aa9e6; --warn:#e0a43a; --bad:#f07360;
-  --edge:#0b0e10; --conc:#77726a; --floor:#55514a; --yard:#2c2a26; --soil:#211e1a;
-  --steel:#8e9aa3; --cont:#46525c; --tank:#67737c; --hose:#2a3035;
-  --equip:#d39f2a; --wood:#a87a46; --seal:#7fa3c0; --robot:#aeb4b9; --robot-pnl:#c4bfae;
-  --water:#5aa8e6; --uhp:#a585ec; --air:#a4b0b9; --sludge:#b08a55; --treated:#4fc4b4; --co2:#9aa5ae;
-  --paint-g:#4cc070; --paint-r:#f07360; color-scheme:dark}
-
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 var(--f-body);
-  padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(48px + env(safe-area-inset-bottom,0px))}
-.wrap{max-width:1240px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
-a{color:var(--accent)}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
-.back{font-size:14px;text-decoration:none;display:inline-flex;align-items:center;min-height:44px}
-.env{font:600 11px var(--f-body);letter-spacing:.07em;text-transform:uppercase;border:1px solid currentColor;border-radius:999px;padding:2px 9px;color:var(--warn)}
-header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:10px 20px}
-h1{font:600 2.1rem/1 var(--f-display);letter-spacing:.01em;margin:0}
-h2{font:600 1.4rem/1.15 var(--f-display);letter-spacing:.02em;margin:0}
-h3{font:600 1.1rem/1.2 var(--f-display);letter-spacing:.02em;margin:0}
-.btn{font:500 14px var(--f-body);color:var(--accent);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:9px 14px;min-height:44px;cursor:pointer}
-.btn:hover{border-color:var(--accent)}
-.btn:disabled{opacity:.4;cursor:default}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;min-width:0}
-
-/* step bar */
-.steps{display:flex;gap:6px;overflow-x:auto;padding:2px 2px 6px;margin:0 0 10px;list-style:none;scrollbar-width:thin}
-.steps button{flex:0 0 auto;font:500 13px var(--f-body);color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:999px;padding:8px 13px;min-height:40px;cursor:pointer;white-space:nowrap}
-.steps button b{font-family:var(--f-mono);font-weight:600;margin-right:5px}
-.steps button[aria-current="step"]{background:var(--accent);border-color:var(--accent);color:var(--surface)}
-
-/* stage */
-.stage{position:relative;overflow-x:auto;overflow-y:hidden;border-radius:6px;background:var(--surface);-webkit-overflow-scrolling:touch}
-#scene{display:block;width:100%;height:auto}
-.pan{display:none;font-size:12px;color:var(--muted);margin:6px 0 0}
-#scene text{font-family:var(--f-body)}
-.face{stroke:var(--edge);stroke-width:1;stroke-linejoin:round}
-.lit{fill:#fff;opacity:.2;pointer-events:none}
-.shd{fill:#000;opacity:.2;pointer-events:none}
-.lbl{font-size:12.5px;font-weight:700;letter-spacing:.05em;fill:var(--ink);paint-order:stroke;stroke:var(--surface);stroke-width:4px;stroke-linejoin:round}
-.floorlbl{font-size:11px;font-weight:600;letter-spacing:.1em;fill:var(--muted)}
-.mini{font-size:11px;font-weight:600;letter-spacing:.06em}
-.badge circle{fill:var(--ink);transition:fill .2s}
-.badge text{fill:var(--surface);font:600 12px var(--f-mono)!important}
-.part{cursor:pointer;transition:opacity .35s}
-.part:hover .badge circle,.part:focus-visible .badge circle{fill:var(--accent)}
-.part:focus{outline:none}
-.hit{fill:transparent;cursor:pointer}
-.hit.kb{stroke:var(--accent);stroke-width:2;stroke-dasharray:4 3}
-.dim{opacity:.18}
-.hose{fill:none;stroke:var(--hose);stroke-linecap:round;stroke-linejoin:round;transition:opacity .35s}
-.shine{fill:none;stroke:#fff;opacity:.28;stroke-linecap:round;stroke-linejoin:round;pointer-events:none;transition:opacity .35s}
-.dimh{opacity:.22}
-.shine.dimh{opacity:.06}
-.flow{fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:6 12;opacity:0;transition:opacity .35s}
-.flow.on{opacity:1;animation:flow 1s linear infinite}
-.flow.k-uhp.on{animation-duration:.45s}
-.k-water{stroke:var(--water)} .k-uhp{stroke:var(--uhp)} .k-air{stroke:var(--air);stroke-dasharray:3 7} .k-sludge{stroke:var(--sludge)} .k-treated{stroke:var(--treated)} .k-co2{stroke:var(--co2);stroke-dasharray:2 6}
-@keyframes flow{to{stroke-dashoffset:-18}}
-#spray{opacity:0;transition:opacity .3s}
-#spray.on{opacity:1}
-#spray path{fill:none;stroke:var(--water);stroke-width:2.6;stroke-dasharray:4 4;stroke-linecap:round}
-#spray.on path{animation:flow .4s linear infinite}
-#chip.on{animation:buzz .09s linear infinite}
-@keyframes buzz{50%{transform:translate(.8px,-.8px)}}
-#skid.on{animation:scoop 4s ease-in-out infinite}
-@keyframes scoop{50%{transform:translateX(10px)}}
-.bub{fill:none;stroke:#fff;stroke-width:1.4;opacity:0}
-#bubbles.on .bub{animation:rise 1.8s ease-in infinite}
-@keyframes rise{0%{opacity:0;transform:translateY(0)}20%{opacity:.9}100%{opacity:0;transform:translateY(-40px)}}
-#mneedle.on{animation:spin 1.6s linear infinite;transform-origin:1250px 541px}
-@keyframes spin{to{transform:rotate(360deg)}}
-#jet circle{fill:var(--water);animation:flick .25s linear infinite alternate}
-@keyframes flick{to{opacity:.3}}
-.tw{transition:opacity .6s}
-#excl{transition:opacity .35s}
-@media (prefers-reduced-motion:reduce){
-  .flow.on,#spray.on path,#chip.on,#skid.on,#bubbles.on .bub,#mneedle.on,#jet circle{animation:none}
-  #bubbles.on .bub{opacity:.9}
-}
-
-/* legend */
-.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-top:10px}
-.legend span{display:inline-flex;align-items:center;gap:6px}
-.legend i{display:inline-block;width:22px;border-top:3px solid}
-
-/* step card */
-.card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 24px;align-items:start;margin-top:14px;padding-top:14px;border-top:1px solid var(--grid)}
-.card .kicker{font:600 12px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.card p{margin:6px 0 0;max-width:75ch}
-.safety{display:flex;gap:10px;margin-top:10px;padding:10px 12px;border:1px solid var(--warn);border-left-width:4px;border-radius:6px;font-size:14px;max-width:75ch}
-.safety::before{content:"⚠";color:var(--warn);font-size:16px;line-height:1.3}
-.safety[hidden]{display:none}
-.nav{display:flex;gap:8px}
-
-/* parts grid */
-.parts{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin:12px 0 0;padding:0;list-style:none}
-.parts button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;font:500 14px var(--f-body);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-height:48px;cursor:pointer}
-.parts button:hover{border-color:var(--accent)}
-.num{flex:0 0 auto;display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;background:var(--ink);color:var(--surface);font:600 12.5px var(--f-mono)}
-
-/* collapsible sections */
-.fold summary{display:flex;align-items:center;gap:10px;min-height:44px;cursor:pointer;list-style:none}
-.fold summary::-webkit-details-marker{display:none}
-.fold summary::before{content:"▸";color:var(--muted);transition:transform .15s}
-.fold[open] summary::before{transform:rotate(90deg)}
-
-/* glossary */
-.gloss{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px 28px;margin:12px 0 0}
-.gloss div{break-inside:avoid}
-.gloss dt{font-weight:600}
-.gloss dd{margin:2px 0 0;color:var(--muted);font-size:14px}
-
-/* dialog */
-dialog{width:min(560px,calc(100vw - 32px));max-height:calc(100dvh - 48px);border:1px solid var(--line);border-radius:12px;padding:0;background:var(--surface);color:var(--ink);box-shadow:0 12px 40px rgba(0,0,0,.25)}
-dialog::backdrop{background:rgba(10,14,17,.5)}
-.dlg{padding:18px 18px 16px;display:flex;flex-direction:column;gap:10px}
-.dlg-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
-.dlg-h h2{display:flex;align-items:center;gap:10px}
-.dlg h4{margin:4px 0 0;font:600 12px var(--f-body);letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-.dlg p{margin:2px 0 0}
-.dlg ul{margin:2px 0 0;padding-left:20px}
-.close{min-width:44px;min-height:44px;font-size:20px;line-height:1;border:1px solid var(--line);border-radius:8px;background:transparent;color:var(--ink);cursor:pointer}
-.seen{display:flex;flex-wrap:wrap;gap:6px;margin-top:2px}
-.seen button{font:500 13px var(--f-body);color:var(--accent);background:transparent;border:1px solid var(--line);border-radius:999px;padding:6px 11px;min-height:36px;cursor:pointer}
-
-#handout{display:none}
-
-@media (max-width:860px){
-  #scene{min-width:920px}
-  .pan{display:block}
-  h1{font-size:1.8rem}
-  .card{grid-template-columns:minmax(0,1fr)}
-  .nav .btn{flex:1}
-}
-
-/* print: one page. Diagram + legend, short steps in two columns, equipment key in three. */
-@media print{
-  @page{margin:10mm}
-  body{background:#fff;color:#000;padding:0;font-size:9pt;line-height:1.35}
-  .wrap{max-width:none;gap:6px}
-  .no-print,.steps,.card,.pan,.top,.glossary{display:none!important}
-  h1{font-size:20pt}
-  .panel{border:0;padding:0;break-inside:avoid}
-  .stage{overflow:visible}
-  #scene{min-width:0!important}
-  .legend{font-size:7.5pt;gap:2px 12px;margin-top:4px}
-  .flow,.flow.on,#spray path,#chip,#skid,.bub,#mneedle{animation:none!important}
-  .dim{opacity:1!important}
-  #handout{display:block;break-inside:avoid}
-  #handout h2{font-size:12pt;margin:8px 0 4px}
-  .h-steps{columns:2;column-gap:8mm;margin:0;padding-left:16px}
-  .h-steps li{break-inside:avoid;margin-bottom:4px}
-  .h-key{columns:3;column-gap:6mm;margin:0;padding:0;list-style:none}
-  .h-key li{display:flex;align-items:center;gap:6px;margin-bottom:3px;break-inside:avoid}
-  .h-key .num{width:18px;height:18px;font-size:8pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-}
-</style>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+    <style>
+         :root {
+            --bg: #eef0f2;
+            --surface: #fbfcfc;
+            --ink: #1b2227;
+            --muted: #5a6670;
+            --line: #d5dbdf;
+            --grid: #e3e7ea;
+            --accent: #1d5c96;
+            --warn: #a8690f;
+            --bad: #b42318;
+            --edge: #2a3238;
+            --conc: #bdb7aa;
+            --floor: #d3cdc1;
+            --yard: #e0dbd0;
+            --soil: #c9bca4;
+            --steel: #5b666f;
+            --cont: #56626c;
+            --tank: #8b969f;
+            --hose: #3f474e;
+            --equip: #e2ad2c;
+            --wood: #b9874f;
+            --seal: #5d7f9a;
+            --robot: #d4d8db;
+            --robot-pnl: #e8e3d2;
+            --water: #2a7fc1;
+            --uhp: #7048c0;
+            --air: #8d99a3;
+            --sludge: #8a6a3d;
+            --treated: #1f9e8f;
+            --co2: #b8c1c8;
+            --paint-g: #2e9e4f;
+            --paint-r: #c8372d;
+            --f-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+            --f-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+            --f-mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+            color-scheme: light;
+        }
+        
+        @media (prefers-color-scheme: dark) {
+             :root:not([data-theme="light"]) {
+                --bg: #13171a;
+                --surface: #1b2125;
+                --ink: #e3e8eb;
+                --muted: #95a1aa;
+                --line: #2e373d;
+                --grid: #262e33;
+                --accent: #6aa9e6;
+                --warn: #e0a43a;
+                --bad: #f07360;
+                --edge: #0b0e10;
+                --conc: #77726a;
+                --floor: #55514a;
+                --yard: #2c2a26;
+                --soil: #211e1a;
+                --steel: #8e9aa3;
+                --cont: #46525c;
+                --tank: #67737c;
+                --hose: #2a3035;
+                --equip: #d39f2a;
+                --wood: #a87a46;
+                --seal: #7fa3c0;
+                --robot: #aeb4b9;
+                --robot-pnl: #c4bfae;
+                --water: #5aa8e6;
+                --uhp: #a585ec;
+                --air: #a4b0b9;
+                --sludge: #b08a55;
+                --treated: #4fc4b4;
+                --co2: #9aa5ae;
+                --paint-g: #4cc070;
+                --paint-r: #f07360;
+                color-scheme: dark
+            }
+        }
+        
+         :root[data-theme="dark"] {
+            --bg: #13171a;
+            --surface: #1b2125;
+            --ink: #e3e8eb;
+            --muted: #95a1aa;
+            --line: #2e373d;
+            --grid: #262e33;
+            --accent: #6aa9e6;
+            --warn: #e0a43a;
+            --bad: #f07360;
+            --edge: #0b0e10;
+            --conc: #77726a;
+            --floor: #55514a;
+            --yard: #2c2a26;
+            --soil: #211e1a;
+            --steel: #8e9aa3;
+            --cont: #46525c;
+            --tank: #67737c;
+            --hose: #2a3035;
+            --equip: #d39f2a;
+            --wood: #a87a46;
+            --seal: #7fa3c0;
+            --robot: #aeb4b9;
+            --robot-pnl: #c4bfae;
+            --water: #5aa8e6;
+            --uhp: #a585ec;
+            --air: #a4b0b9;
+            --sludge: #b08a55;
+            --treated: #4fc4b4;
+            --co2: #9aa5ae;
+            --paint-g: #4cc070;
+            --paint-r: #f07360;
+            color-scheme: dark
+        }
+        
+        * {
+            box-sizing: border-box
+        }
+        
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 15px/1.5 var(--f-body);
+            padding: calc(20px + env(safe-area-inset-top, 0px)) 16px calc(48px + env(safe-area-inset-bottom, 0px))
+        }
+        
+        .wrap {
+            max-width: 1240px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 18px
+        }
+        
+        a {
+            color: var(--accent)
+        }
+        
+        .top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px
+        }
+        
+        .back {
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            min-height: 44px
+        }
+        
+        .env {
+            font: 600 11px var(--f-body);
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            border: 1px solid currentColor;
+            border-radius: 999px;
+            padding: 2px 9px;
+            color: var(--warn)
+        }
+        
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 10px 20px
+        }
+        
+        h1 {
+            font: 600 2.1rem/1 var(--f-display);
+            letter-spacing: .01em;
+            margin: 0
+        }
+        
+        h2 {
+            font: 600 1.4rem/1.15 var(--f-display);
+            letter-spacing: .02em;
+            margin: 0
+        }
+        
+        h3 {
+            font: 600 1.1rem/1.2 var(--f-display);
+            letter-spacing: .02em;
+            margin: 0
+        }
+        
+        .btn {
+            font: 500 14px var(--f-body);
+            color: var(--accent);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            padding: 9px 14px;
+            min-height: 44px;
+            cursor: pointer
+        }
+        
+        .btn:hover {
+            border-color: var(--accent)
+        }
+        
+        .btn:disabled {
+            opacity: .4;
+            cursor: default
+        }
+        
+        .btn.primary {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--surface)
+        }
+        
+         :focus-visible {
+            outline: 2px solid var(--accent);
+            outline-offset: 2px
+        }
+        
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            padding: 16px;
+            min-width: 0
+        }
+        /* step bar */
+        
+        .steps {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 2px 2px 6px;
+            margin: 0 0 10px;
+            list-style: none;
+            scrollbar-width: thin
+        }
+        
+        .steps button {
+            flex: 0 0 auto;
+            font: 500 13px var(--f-body);
+            color: var(--muted);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 8px 13px;
+            min-height: 40px;
+            cursor: pointer;
+            white-space: nowrap
+        }
+        
+        .steps button b {
+            font-family: var(--f-mono);
+            font-weight: 600;
+            margin-right: 5px
+        }
+        
+        .steps button[aria-current="step"] {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--surface)
+        }
+        /* stage */
+        
+        .stage {
+            position: relative;
+            overflow-x: auto;
+            overflow-y: hidden;
+            border-radius: 6px;
+            background: var(--surface);
+            -webkit-overflow-scrolling: touch
+        }
+        
+        #scene {
+            display: block;
+            width: 100%;
+            height: auto
+        }
+        
+        .pan {
+            display: none;
+            font-size: 12px;
+            color: var(--muted);
+            margin: 6px 0 0
+        }
+        
+        #scene text {
+            font-family: var(--f-body)
+        }
+        
+        .face {
+            stroke: var(--edge);
+            stroke-width: 1;
+            stroke-linejoin: round
+        }
+        
+        .lit {
+            fill: #fff;
+            opacity: .2;
+            pointer-events: none
+        }
+        
+        .shd {
+            fill: #000;
+            opacity: .2;
+            pointer-events: none
+        }
+        
+        .lbl {
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: .05em;
+            fill: var(--ink);
+            paint-order: stroke;
+            stroke: var(--surface);
+            stroke-width: 4px;
+            stroke-linejoin: round
+        }
+        
+        .floorlbl {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .1em;
+            fill: var(--muted)
+        }
+        
+        .mini {
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: .06em
+        }
+        
+        .badge circle {
+            fill: var(--ink);
+            transition: fill .2s
+        }
+        
+        .badge text {
+            fill: var(--surface);
+            font: 600 12px var(--f-mono)!important
+        }
+        
+        .part {
+            cursor: pointer;
+            transition: opacity .35s
+        }
+        
+        .part:hover .badge circle,
+        .part:focus-visible .badge circle {
+            fill: var(--accent)
+        }
+        
+        .part:focus {
+            outline: none
+        }
+        
+        .hit {
+            fill: transparent;
+            cursor: pointer
+        }
+        
+        .hit.kb {
+            stroke: var(--accent);
+            stroke-width: 2;
+            stroke-dasharray: 4 3
+        }
+        
+        .dim {
+            opacity: .18
+        }
+        
+        .hose {
+            fill: none;
+            stroke: var(--hose);
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            transition: opacity .35s
+        }
+        
+        .shine {
+            fill: none;
+            stroke: #fff;
+            opacity: .28;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            pointer-events: none;
+            transition: opacity .35s
+        }
+        
+        .dimh {
+            opacity: .22
+        }
+        
+        .shine.dimh {
+            opacity: .06
+        }
+        
+        .flow {
+            fill: none;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 6 12;
+            opacity: 0;
+            transition: opacity .35s
+        }
+        
+        .flow.on {
+            opacity: 1;
+            animation: flow 1s linear infinite
+        }
+        
+        .flow.k-uhp.on {
+            animation-duration: .45s
+        }
+        
+        .k-water {
+            stroke: var(--water)
+        }
+        
+        .k-uhp {
+            stroke: var(--uhp)
+        }
+        
+        .k-air {
+            stroke: var(--air);
+            stroke-dasharray: 3 7
+        }
+        
+        .k-sludge {
+            stroke: var(--sludge)
+        }
+        
+        .k-treated {
+            stroke: var(--treated)
+        }
+        
+        .k-co2 {
+            stroke: var(--co2);
+            stroke-dasharray: 2 6
+        }
+        
+        @keyframes flow {
+            to {
+                stroke-dashoffset: -18
+            }
+        }
+        
+        #spray {
+            opacity: 0;
+            transition: opacity .3s
+        }
+        
+        #spray.on {
+            opacity: 1
+        }
+        
+        #spray path {
+            fill: none;
+            stroke: var(--water);
+            stroke-width: 2.6;
+            stroke-dasharray: 4 4;
+            stroke-linecap: round
+        }
+        
+        #spray.on path {
+            animation: flow .4s linear infinite
+        }
+        
+        #chip.on {
+            animation: buzz .09s linear infinite
+        }
+        
+        @keyframes buzz {
+            50% {
+                transform: translate(.8px, -.8px)
+            }
+        }
+        
+        #skid.on {
+            animation: scoop 4s ease-in-out infinite
+        }
+        
+        @keyframes scoop {
+            50% {
+                transform: translateX(10px)
+            }
+        }
+        
+        .bub {
+            fill: none;
+            stroke: #fff;
+            stroke-width: 1.4;
+            opacity: 0
+        }
+        
+        #bubbles.on .bub {
+            animation: rise 1.8s ease-in infinite
+        }
+        
+        @keyframes rise {
+            0% {
+                opacity: 0;
+                transform: translateY(0)
+            }
+            20% {
+                opacity: .9
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-40px)
+            }
+        }
+        
+        #mneedle.on {
+            animation: spin 1.6s linear infinite;
+            transform-origin: 1250px 541px
+        }
+        
+        @keyframes spin {
+            to {
+                transform: rotate(360deg)
+            }
+        }
+        
+        #jet circle {
+            fill: var(--water);
+            animation: flick .25s linear infinite alternate
+        }
+        
+        @keyframes flick {
+            to {
+                opacity: .3
+            }
+        }
+        
+        .tw {
+            transition: opacity .6s
+        }
+        
+        #excl {
+            transition: opacity .35s
+        }
+        
+        @media (prefers-reduced-motion:reduce) {
+            .flow.on,
+            #spray.on path,
+            #chip.on,
+            #skid.on,
+            #bubbles.on .bub,
+            #mneedle.on,
+            #jet circle {
+                animation: none
+            }
+            #bubbles.on .bub {
+                opacity: .9
+            }
+        }
+        /* legend */
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px 16px;
+            font-size: 12.5px;
+            color: var(--muted);
+            margin-top: 10px
+        }
+        
+        .legend span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+        
+        .legend i {
+            display: inline-block;
+            width: 22px;
+            border-top: 3px solid
+        }
+        /* step card */
+        
+        .card {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 12px 24px;
+            align-items: start;
+            margin-top: 14px;
+            padding-top: 14px;
+            border-top: 1px solid var(--grid)
+        }
+        
+        .card .kicker {
+            font: 600 12px var(--f-body);
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--muted)
+        }
+        
+        .card p {
+            margin: 6px 0 0;
+            max-width: 75ch
+        }
+        
+        .safety {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border: 1px solid var(--warn);
+            border-left-width: 4px;
+            border-radius: 6px;
+            font-size: 14px;
+            max-width: 75ch
+        }
+        
+        .safety::before {
+            content: "⚠";
+            color: var(--warn);
+            font-size: 16px;
+            line-height: 1.3
+        }
+        
+        .safety[hidden] {
+            display: none
+        }
+        
+        .nav {
+            display: flex;
+            gap: 8px
+        }
+        /* parts grid */
+        
+        .parts {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 8px;
+            margin: 12px 0 0;
+            padding: 0;
+            list-style: none
+        }
+        
+        .parts button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-align: left;
+            font: 500 14px var(--f-body);
+            color: var(--ink);
+            background: var(--bg);
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 9px 12px;
+            min-height: 48px;
+            cursor: pointer
+        }
+        
+        .parts button:hover {
+            border-color: var(--accent)
+        }
+        
+        .num {
+            flex: 0 0 auto;
+            display: inline-grid;
+            place-items: center;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: var(--ink);
+            color: var(--surface);
+            font: 600 12.5px var(--f-mono)
+        }
+        /* collapsible sections */
+        
+        .fold summary {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-height: 44px;
+            cursor: pointer;
+            list-style: none
+        }
+        
+        .fold summary::-webkit-details-marker {
+            display: none
+        }
+        
+        .fold summary::before {
+            content: "▸";
+            color: var(--muted);
+            transition: transform .15s
+        }
+        
+        .fold[open] summary::before {
+            transform: rotate(90deg)
+        }
+        /* glossary */
+        
+        .gloss {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 10px 28px;
+            margin: 12px 0 0
+        }
+        
+        .gloss div {
+            break-inside: avoid
+        }
+        
+        .gloss dt {
+            font-weight: 600
+        }
+        
+        .gloss dd {
+            margin: 2px 0 0;
+            color: var(--muted);
+            font-size: 14px
+        }
+        /* dialog */
+        
+        dialog {
+            width: min(560px, calc(100vw - 32px));
+            max-height: calc(100dvh - 48px);
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            padding: 0;
+            background: var(--surface);
+            color: var(--ink);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, .25)
+        }
+        
+        dialog::backdrop {
+            background: rgba(10, 14, 17, .5)
+        }
+        
+        .dlg {
+            padding: 18px 18px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+        
+        .dlg-h {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px
+        }
+        
+        .dlg-h h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+        
+        .dlg h4 {
+            margin: 4px 0 0;
+            font: 600 12px var(--f-body);
+            letter-spacing: .07em;
+            text-transform: uppercase;
+            color: var(--muted)
+        }
+        
+        .dlg p {
+            margin: 2px 0 0
+        }
+        
+        .dlg ul {
+            margin: 2px 0 0;
+            padding-left: 20px
+        }
+        
+        .close {
+            min-width: 44px;
+            min-height: 44px;
+            font-size: 20px;
+            line-height: 1;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            background: transparent;
+            color: var(--ink);
+            cursor: pointer
+        }
+        
+        .seen {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-top: 2px
+        }
+        
+        .seen button {
+            font: 500 13px var(--f-body);
+            color: var(--accent);
+            background: transparent;
+            border: 1px solid var(--line);
+            border-radius: 999px;
+            padding: 6px 11px;
+            min-height: 36px;
+            cursor: pointer
+        }
+        
+        #handout {
+            display: none
+        }
+        
+        @media (max-width:860px) {
+            #scene {
+                min-width: 920px
+            }
+            .pan {
+                display: block
+            }
+            h1 {
+                font-size: 1.8rem
+            }
+            .card {
+                grid-template-columns: minmax(0, 1fr)
+            }
+            .nav .btn {
+                flex: 1
+            }
+        }
+        /* print: one page. Diagram + legend, short steps in two columns, equipment key in three. */
+        
+        @media print {
+            @page {
+                margin: 10mm
+            }
+            body {
+                background: #fff;
+                color: #000;
+                padding: 0;
+                font-size: 9pt;
+                line-height: 1.35
+            }
+            .wrap {
+                max-width: none;
+                gap: 6px
+            }
+            .no-print,
+            .steps,
+            .card,
+            .pan,
+            .top,
+            .glossary {
+                display: none!important
+            }
+            h1 {
+                font-size: 20pt
+            }
+            .panel {
+                border: 0;
+                padding: 0;
+                break-inside: avoid
+            }
+            .stage {
+                overflow: visible
+            }
+            #scene {
+                min-width: 0!important
+            }
+            .legend {
+                font-size: 7.5pt;
+                gap: 2px 12px;
+                margin-top: 4px
+            }
+            .flow,
+            .flow.on,
+            #spray path,
+            #chip,
+            #skid,
+            .bub,
+            #mneedle {
+                animation: none!important
+            }
+            .dim {
+                opacity: 1!important
+            }
+            #handout {
+                display: block;
+                break-inside: avoid
+            }
+            #handout h2 {
+                font-size: 12pt;
+                margin: 8px 0 4px
+            }
+            .h-steps {
+                columns: 2;
+                column-gap: 8mm;
+                margin: 0;
+                padding-left: 16px
+            }
+            .h-steps li {
+                break-inside: avoid;
+                margin-bottom: 4px
+            }
+            .h-key {
+                columns: 3;
+                column-gap: 6mm;
+                margin: 0;
+                padding: 0;
+                list-style: none
+            }
+            .h-key li {
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                margin-bottom: 3px;
+                break-inside: avoid
+            }
+            .h-key .num {
+                width: 18px;
+                height: 18px;
+                font-size: 8pt;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact
+            }
+        }
+    </style>
 </head>
+
 <body>
-<div class="wrap">
-  <div class="top">
-    <a class="back" id="back" href="../index.html">← All tools</a>
-    <span class="env" id="env" hidden>Prototype</span>
-  </div>
+    <div class="wrap">
+        <div class="top">
+            <a class="back" id="back" href="../index.html">← All tools</a>
+            <span class="env" id="env" hidden>Prototype</span>
+        </div>
 
-  <header>
-    <div>
-      <h1>Hydrodemolition 101</h1>
-    </div>
-    <button class="btn no-print" id="print" type="button">Print / save handout</button>
-  </header>
+        <header>
+            <div>
+                <h1>Hydrodemolition 101</h1>
+            </div>
+            <button class="btn no-print" id="print" type="button">Print / save handout</button>
+        </header>
 
-  <section class="panel" aria-label="Process diagram">
-    <nav aria-label="Process steps"><ul class="steps" id="steps"></ul></nav>
-    <div class="stage" id="stage">
-      <svg id="scene" viewBox="0 170 1300 450" role="img" aria-labelledby="scene-title">
+        <section class="panel" aria-label="Process diagram">
+            <nav aria-label="Process steps">
+                <ul class="steps" id="steps"></ul>
+            </nav>
+            <div class="stage" id="stage">
+                <svg id="scene" viewBox="0 170 1300 450" role="img" aria-labelledby="scene-title">
         <title id="scene-title">3D cutaway of a hydrodemolition job: water supply, UHP pumps and compressor on the left; the robot cutting the upper slab; shoring and containment on the floor below; settling and treatment tanks and the discharge to sewer on the right.</title>
         <defs>
           <linearGradient id="gloss" x1="0" y1="0" x2="0" y2="1">
@@ -235,203 +974,336 @@ dialog::backdrop{background:rgba(10,14,17,.5)}
         </defs>
         <g id="root"></g>
       </svg>
+            </div>
+            <p class="pan">Swipe the diagram sideways to see the whole site. Each step pans to its part.</p>
+            <div class="legend" aria-label="Legend">
+                <span><i style="border-color:var(--water)"></i>Water</span>
+                <span><i style="border-color:var(--uhp)"></i>Ultra-high-pressure water</span>
+                <span><i style="border-color:var(--air);border-top-style:dotted"></i>Compressed air</span>
+                <span><i style="border-color:var(--sludge)"></i>Slurry</span>
+                <span><i style="border-color:var(--treated)"></i>Treated water</span>
+                <span><i style="border-color:var(--co2);border-top-style:dotted"></i>CO₂</span>
+            </div>
+
+            <div class="card" aria-live="polite">
+                <div>
+                    <div class="kicker" id="s-kicker"></div>
+                    <h2 id="s-title"></h2>
+                    <p id="s-text"></p>
+                    <div class="safety" id="s-safety" hidden></div>
+                </div>
+                <div class="nav">
+                    <button class="btn" id="prev" type="button">← Back</button>
+                    <button class="btn primary" id="next" type="button">Next →</button>
+                </div>
+            </div>
+        </section>
+
+        <details class="panel fold no-print">
+            <summary>
+                <h2>Equipment and parts</h2>
+            </summary>
+            <ul class="parts" id="parts"></ul>
+        </details>
+
+        <section id="handout" aria-hidden="true"></section>
+
+        <details class="panel fold glossary" id="gloss-d">
+            <summary>
+                <h2>Glossary</h2>
+            </summary>
+            <dl class="gloss" id="gloss"></dl>
+        </details>
     </div>
-    <p class="pan">Swipe the diagram sideways to see the whole site. Each step pans to its part.</p>
-    <div class="legend" aria-label="Legend">
-      <span><i style="border-color:var(--water)"></i>Water</span>
-      <span><i style="border-color:var(--uhp)"></i>Ultra-high-pressure water</span>
-      <span><i style="border-color:var(--air);border-top-style:dotted"></i>Compressed air</span>
-      <span><i style="border-color:var(--sludge)"></i>Slurry</span>
-      <span><i style="border-color:var(--treated)"></i>Treated water</span>
-      <span><i style="border-color:var(--co2);border-top-style:dotted"></i>CO₂</span>
-    </div>
 
-    <div class="card" aria-live="polite">
-      <div>
-        <div class="kicker" id="s-kicker"></div>
-        <h2 id="s-title"></h2>
-        <p id="s-text"></p>
-        <div class="safety" id="s-safety" hidden></div>
-      </div>
-      <div class="nav">
-        <button class="btn" id="prev" type="button">← Back</button>
-        <button class="btn primary" id="next" type="button">Next →</button>
-      </div>
-    </div>
-  </section>
+    <dialog id="dlg" aria-labelledby="d-title">
+        <div class="dlg">
+            <div class="dlg-h">
+                <h2 id="d-title"></h2>
+                <button class="close" id="d-close" type="button" aria-label="Close">×</button>
+            </div>
+            <div id="d-body"></div>
+        </div>
+    </dialog>
 
-  <details class="panel fold no-print">
-    <summary><h2>Equipment and parts</h2></summary>
-    <ul class="parts" id="parts"></ul>
-  </details>
+    <script>
+        (function() {
+                // ---- environment + links (APP_RULES.md §2) ----
+                const ON_QB = /\.quickbase\.com$/i.test(location.hostname);
+                const HOME = '../';
 
-  <section id="handout" aria-hidden="true"></section>
+                function appUrl(file) {
+                    return ON_QB ? '?a=dbpage&pagename=' + encodeURIComponent(file.split('/').pop()) : HOME + file;
+                }
+                const $ = id => document.getElementById(id);
+                const esc = s => String(s).replace(/[&<>"']/g, c => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[c]));
+                const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+                $('back').href = appUrl('index.html');
+                $('env').hidden = ON_QB;
 
-  <details class="panel fold glossary" id="gloss-d">
-    <summary><h2>Glossary</h2></summary>
-    <dl class="gloss" id="gloss"></dl>
-  </details>
-</div>
+                // ---- content: equipment / parts, in process order ----
+                const PARTS = {
+                    paint: {
+                        n: 1,
+                        name: 'Layout paint',
+                        what: 'The demolition area is outlined on top of the slab in green spray paint. The same outline is then transferred to the underside of the slab in red.',
+                        why: 'The crew on the floor below can see exactly where water and debris will come through, so shoring, containment and the exclusion zone go in the right place.',
+                        links: ['Shoring and containment are laid out from the red outline below']
+                    },
+                    shoring: {
+                        n: 2,
+                        name: 'Shoring',
+                        what: 'Temporary posts and beams on the floor below, laid out to the engineer\'s design. They usually stand inside the containment area, around the opening.',
+                        why: 'Removing concrete weakens the slab, and the robot adds weight. Shoring carries that load until the repair has been placed and cured.',
+                        links: ['Engineer\'s shoring plan', 'Sits on the floor below the demo area'],
+                        safety: 'Never remove or adjust shoring without engineer sign-off. Inspect it daily.'
+                    },
+                    walls: {
+                        n: 3,
+                        name: 'Containment walls and seals',
+                        what: 'Wooden retaining walls built on the floor below, directly under the red outline, and sealed to the floor with silicone. Every floor drain inside or near the containment is plugged before cutting starts.',
+                        why: 'They catch the water, slurry and debris coming through the slab, so it can be pumped out instead of flooding the floor. Plugged drains keep alkaline slurry out of the building\'s drain lines and the storm or sewer system.',
+                        links: ['Membrane pumps pull slurry out', 'Larger debris is scooped out for haul-off', 'Floor drains plugged'],
+                        safety: 'Check seals and drain plugs before cutting and between shifts. A leak or open drain sends alkaline slurry where it should not go.'
+                    },
+                    supply: {
+                        n: 4,
+                        name: 'Water supply and backflow monitoring',
+                        what: 'Clean water from a hydrant or building connection feeds the UHP pumps and the washdown hose. A backflow preventer with monitoring sits between the source and our equipment.',
+                        why: 'It makes sure we never push water back into the system we are pulling from, which protects the owner\'s or city\'s drinking water.',
+                        links: ['Hydrant or building supply (in)', 'UHP pumps and washdown pump (out)'],
+                        safety: 'Confirm the backflow device is tested and tagged before connecting.'
+                    },
+                    washpump: {
+                        n: 6,
+                        name: 'Washdown pump',
+                        what: 'A smaller, high-volume, low-pressure pump that feeds the big washdown hose. It is separate from the UHP pumps.',
+                        why: 'Washdown needs a lot of water at low pressure to move material, not cutting pressure, so the UHP system stays dedicated to the robot.',
+                        links: ['Water supply through the backflow preventer (in)', 'Washdown hose on the demo floor (out)']
+                    },
+                    uhp: {
+                        n: 5,
+                        name: 'UHP water pumps',
+                        what: 'Diesel-driven pump units that take clean water from the supply and raise it to ultra-high pressure (UHP), then send it to the robot through rated high-pressure hose.',
+                        why: 'That pressure is what does the cutting. Every hose, fitting and restraint between the pump and the robot has to be rated for it.',
+                        links: ['Water supply through the backflow preventer (in)', 'Robot, through UHP hose (out)'],
+                        safety: 'A UHP leak or jet can inject water through skin. Never touch or step on a pressurized hose. Depressurize before any connection is touched.'
+                    },
+                    compressor: {
+                        n: 7,
+                        name: 'Air compressors',
+                        what: 'Supply compressed air to the chipping hammers on the demo floor and to the membrane pumps on the floor below.',
+                        why: 'Air-powered tools and pumps are safe to run in water and slurry, with no electric motors in the wet zone.',
+                        links: ['Chipping hammers (upper floor)', 'Membrane pumps (floor below)'],
+                        safety: 'Whip checks on every air hose coupling. Bleed pressure before disconnecting.'
+                    },
+                    robot: {
+                        n: 8,
+                        name: 'Hydrodemolition robot',
+                        what: 'A remote-controlled machine on rubber tires with the UHP lance on a feed beam at its front. The lance sweeps side to side across the marked area while the robot backs away from the cut, so it always sits on sound concrete.',
+                        why: 'Water removes weak or damaged concrete to a set depth without the micro-cracking jackhammers cause. On a partial-depth repair it cuts to just below the top layer of rebar and leaves that rebar clean and in place, ready for new concrete.',
+                        links: ['UHP pumps, through the high-pressure hose'],
+                        safety: 'Run from outside the exclusion zone. Nobody in the cutting area, or on the floor directly below, while the jet is live.'
+                    },
+                    washdown: {
+                        n: 9,
+                        name: 'Washdown hose',
+                        what: 'A large, low-pressure hose the crew uses to flush cut material and slurry out of the cut and off the slab.',
+                        why: 'Keeps the cut surface clean so the operator can see progress, and makes sure debris ends up inside containment.',
+                        links: ['Washdown pump'],
+                        safety: 'Only once the robot has stopped. Watch your footing at the open edge.'
+                    },
+                    chipping: {
+                        n: 10,
+                        name: 'Chipping',
+                        what: 'Air-powered chipping hammers clean up corners, edges and spots the robot cannot reach.',
+                        why: 'Gives a clean, sound edge all the way around the repair.',
+                        links: ['Air compressor'],
+                        safety: 'Hearing, eye and face protection. Watch your footing at the open edge.'
+                    },
+                    membrane: {
+                        n: 11,
+                        name: 'Membrane pumps',
+                        what: 'Air-operated double-diaphragm pumps on a hand truck, set inside the containment area, that suck slurry out of containment and push it to the settling tanks.',
+                        why: 'They can pump thick, gritty slurry and run dry without damage. Being air-powered, they are safe in standing water.',
+                        links: ['Containment (in)', 'Air compressor (power)', 'Settling tanks (out)']
+                    },
+                    tanks: {
+                        n: 12,
+                        name: 'Settling tanks',
+                        what: 'A train of containers. Slurry enters the first one. Solids sink to the bottom while water overflows into the next container, getting cleaner each time.',
+                        why: 'Most of the concrete fines are caught here instead of going to the sewer. Settled solids are dug out and hauled away.',
+                        links: ['Membrane pumps (in)', 'CO₂ treatment tank (out)']
+                    },
+                    treat: {
+                        n: 13,
+                        name: 'CO₂ treatment and pH adjustment',
+                        what: 'The last container. CO₂ is bubbled into the water to bring down its alkalinity (pH), and a demulsifying treatment helps the last fines drop out. A PLC controller on a stand beside the tank reads the pH and doses the CO₂ automatically to keep it in range.',
+                        why: 'Water that has touched concrete is strongly alkaline. The sewer permit limits pH, so it has to be brought back into range before discharge.',
+                        links: ['Settling tanks (in)', 'CO₂ cylinders, dosed by the PLC controller', 'Discharge meter (out)'],
+                        safety: 'CO₂ displaces oxygen. Keep cylinders secured and upright, and the area ventilated.'
+                    },
+                    meter: {
+                        n: 14,
+                        name: 'Discharge meter',
+                        what: 'Measures how much treated water we send to the sewer.',
+                        why: 'The discharge permit sets limits and requires records. The meter reading is our proof of what went in.',
+                        links: ['CO₂ treatment tank (in)', 'Sanitary sewer (out)']
+                    },
+                    haul: {
+                        n: 15,
+                        name: 'Debris removal',
+                        what: 'Larger chunks that will not pump are scooped out of containment with a skid steer or similar equipment and hauled off site. Settled solids from the tanks go too.',
+                        why: 'Keeps containment clear and stops the pumps from clogging.',
+                        links: ['Containment area', 'Haul-off bins or trucks'],
+                        safety: 'Use a spotter when equipment works near shoring and containment walls.'
+                    },
+                };
 
-<dialog id="dlg" aria-labelledby="d-title">
-  <div class="dlg">
-    <div class="dlg-h">
-      <h2 id="d-title"></h2>
-      <button class="close" id="d-close" type="button" aria-label="Close">×</button>
-    </div>
-    <div id="d-body"></div>
-  </div>
-</dialog>
+                // ---- steps: whole site always visible; each step highlights and animates its part ----
+                // cut: none | run (animates the cut) | sweep (cutting in progress, for the overview) | done
+                const FLOW_IDS = ['supply', 'wash', 'uhp', 'airchip', 'airpump', 'sludge', 'overflow', 'co2', 'discharge'];
+                const STEPS = [{
+                    chip: 'Overview',
+                    title: 'The whole operation',
+                    focus: 'all',
+                    flows: FLOW_IDS,
+                    cut: 'sweep',
+                    tanks: true,
+                    scoop: true,
+                    wash: true,
+                    x: null,
+                    text: 'Everything running at once. Clean water comes in on the left and is pumped to ultra-high pressure for the robot cutting the upper slab. Slurry and debris drop into containment on the floor below, get pumped through settling and treatment on the right, and go out through the meter to the sewer. Step through the job, or tap any numbered part.'
+                }, {
+                    chip: 'Mark',
+                    brief: 'Outline the repair in green on top and transfer it to the underside in red. Confirm conduit and post-tension tendons first.',
+                    title: 'Mark the demo area',
+                    focus: ['paint'],
+                    flows: [],
+                    cut: 'none',
+                    x: 670,
+                    text: 'The repair areas are outlined on top of the slab in green spray paint. The same outline is then transferred to the underside in red, so the crew on the floor below knows exactly where water and debris will come through.',
+                    safety: 'Confirm what is embedded in the slab (conduit, post-tension tendons) before the layout is final.'
+                }, {
+                    chip: 'Shore',
+                    brief: 'Shore the floor below to the engineer\'s plan before any removal. Never adjust it without sign-off.',
+                    title: 'Shore the floor below',
+                    focus: ['shoring', 'paint'],
+                    flows: [],
+                    cut: 'none',
+                    x: 670,
+                    text: 'Shoring goes in on the floor below to the engineer\'s plan, before any concrete is removed, usually inside the area that will be contained. It carries the slab and the robot while the slab is weakened, and stays until the engineer releases it.',
+                    safety: 'Never remove or adjust shoring without engineer sign-off.'
+                }, {
+                    chip: 'Contain',
+                    brief: 'Build sealed wooden walls under the red outline and plug every floor drain. Check seals and plugs before cutting.',
+                    title: 'Build containment',
+                    focus: ['walls', 'paint'],
+                    flows: [],
+                    cut: 'none',
+                    x: 670,
+                    text: 'Wooden retaining walls are built on the floor below, around the red outline and the shoring, and sealed to the floor with silicone. Any floor drains inside or near the area are plugged. The walls catch the slurry and debris that come through the slab.',
+                    safety: 'Check every seal and drain plug before cutting. Leaks or open drains send alkaline slurry across the floor and into the drain system.'
+                }, {
+                    chip: 'Connect',
+                    brief: 'Water through a tested backflow preventer to the UHP and washdown pumps; stage compressors, tanks, treatment and meter. Whip checks on every coupling.',
+                    title: 'Connect water and air',
+                    focus: ['supply', 'uhp', 'washpump', 'compressor', 'tanks', 'treat', 'meter'],
+                    flows: ['supply'],
+                    cut: 'none',
+                    x: 200,
+                    text: 'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps and the smaller washdown pump. Compressors are set up for the chippers and membrane pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
+                    safety: 'Inspect every hose and fitting and fit whip checks on all couplings. Test and tag the backflow device.'
+                }, {
+                    chip: 'Cut',
+                    brief: 'The robot cuts to partial depth, just below the top layer of rebar, backing away from the cut. Exclusion zones above and below while the jet is live.',
+                    title: 'Cut with the robot',
+                    focus: ['robot', 'uhp', 'supply'],
+                    flows: ['supply', 'uhp'],
+                    cut: 'run',
+                    excl: true,
+                    x: 640,
+                    text: 'The UHP pumps send ultra-high-pressure water to the robot. The lance on its front sweeps side to side across the marked area while the robot backs away from the cut, removing concrete to partial depth: about halfway through the slab, just below the top layer of rebar, which is left clean and in place. Water and slurry are collected in containment on the floor below.',
+                    safety: 'Exclusion zones around the robot and on the floor below. Nobody under or near the cut while the jet is live. A UHP jet or hose leak can inject water through skin.'
+                }, {
+                    chip: 'Wash & chip',
+                    brief: 'Flush the cut with the washdown hose and chip what the robot can\'t reach. Only after the robot has stopped.',
+                    title: 'Wash down and chip',
+                    focus: ['washdown', 'washpump', 'chipping', 'compressor'],
+                    flows: ['supply', 'wash', 'airchip'],
+                    cut: 'done',
+                    wash: true,
+                    x: 760,
+                    text: 'The crew uses the big washdown hose, fed by its own high-volume pump, to flush cut material and slurry out of the cut and off the slab. Air-powered chipping hammers clean up corners and spots the robot cannot reach.',
+                    safety: 'Only once the robot has stopped. Hearing, eye and face protection; watch your footing at the open edge.'
+                }, {
+                    chip: 'Pump',
+                    brief: 'Air-driven membrane pumps move slurry from containment to the settling tanks, where solids settle out.',
+                    title: 'Pump to the settling tanks',
+                    focus: ['walls', 'membrane', 'compressor', 'tanks'],
+                    flows: ['airpump', 'sludge', 'overflow'],
+                    cut: 'done',
+                    tanks: true,
+                    x: 860,
+                    text: 'Membrane pumps, driven by compressed air, pull slurry out of containment and send it to the settling tanks. Solids sink to the bottom while water overflows from one container to the next, getting cleaner each time.'
+                }, {
+                    chip: 'Treat',
+                    brief: 'CO₂, dosed by a controller, brings the pH into range; treated water goes through the meter to the sewer. Stay within the permit.',
+                    title: 'Treat and discharge',
+                    focus: ['treat', 'meter', 'tanks'],
+                    flows: ['overflow', 'co2', 'discharge'],
+                    cut: 'done',
+                    tanks: true,
+                    x: 1170,
+                    text: 'The last container is treated: CO₂ brings down the water\'s high alkalinity (pH), and a demulsifying treatment helps the last fines drop out. Treated water passes through the discharge meter into the sewer, so there is a record of everything that went in.',
+                    safety: 'Stay within the discharge permit. Keep CO₂ cylinders secured and the area ventilated.'
+                }, {
+                    chip: 'Haul',
+                    brief: 'Scoop out larger debris and settled solids and haul them off. Use a spotter near shoring and walls.',
+                    title: 'Haul away debris',
+                    focus: ['haul', 'walls'],
+                    flows: [],
+                    cut: 'done',
+                    tanks: true,
+                    scoop: true,
+                    x: 500,
+                    text: 'Larger debris that will not pump is scooped out of containment with a skid steer or similar equipment and hauled away. Settled solids are dug out of the tanks and hauled off too.',
+                    safety: 'Use a spotter when equipment works near shoring and containment walls.'
+                }, ];
 
-<script>
-(function(){
-// ---- environment + links (APP_RULES.md §2) ----
-const ON_QB = /\.quickbase\.com$/i.test(location.hostname);
-const HOME = '../';
-function appUrl(file){
-  return ON_QB ? '?a=dbpage&pagename=' + encodeURIComponent(file.split('/').pop()) : HOME + file;
-}
-const $ = id => document.getElementById(id);
-const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const REDUCE = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
-$('back').href = appUrl('index.html');
-$('env').hidden = ON_QB;
+                const GLOSSARY = [
+                    ['Hydrodemolition', 'Removing concrete with an ultra-high-pressure water jet. It takes out damaged or weak concrete, leaves sound concrete and rebar in place, and leaves a rough surface that new concrete bonds to well.'],
+                    ['UHP (ultra-high pressure)', 'The pressure class of the pumps, hoses and fittings that feed the robot. Far beyond a pressure washer; treat every UHP line as able to cause injury.'],
+                    ['Robot', 'The remote-controlled machine that carries the UHP lance on its front and backs away from the cut.'],
+                    ['Partial-depth removal', 'Cutting concrete out only to a set depth, usually just below the top layer of rebar, instead of all the way through the slab.'],
+                    ['Lance', 'The nozzle assembly on the front of the robot that sweeps side to side across the cut.'],
+                    ['Exclusion zone', 'An area nobody enters while the jet is live: around the robot, and on the floor directly below the cut.'],
+                    ['Shoring', 'Temporary supports under a slab, designed by an engineer, that carry load while the slab is weakened.'],
+                    ['Containment', 'The sealed walls on the floor below that catch water, slurry and debris.'],
+                    ['Drain plug', 'An inflatable or mechanical plug set in a floor drain so slurry cannot get into the building\'s drain lines or the storm or sewer system.'],
+                    ['Slurry', 'The mix of water, concrete fines and small debris produced by cutting.'],
+                    ['Fines', 'Very small concrete particles suspended in the water. They settle slowly.'],
+                    ['Membrane (diaphragm) pump', 'An air-powered pump that moves thick slurry and can run dry without damage.'],
+                    ['Settling tank', 'A container where solids sink out of the water before it moves on.'],
+                    ['pH / alkalinity', 'How basic the water is. Water from concrete is strongly alkaline (high pH) and has to be brought into the permit range before discharge.'],
+                    ['CO₂ treatment', 'Bubbling carbon dioxide into the water to lower its pH.'],
+                    ['PLC controller', 'The control box on the treatment tank. It reads the water\'s pH and opens or closes the CO₂ supply automatically.'],
+                    ['Demulsifier', 'A treatment that breaks up suspended fines so they drop out of the water.'],
+                    ['Backflow preventer', 'A valve assembly that stops water from flowing back into the supply it came from.'],
+                    ['Discharge meter / permit', 'The meter records how much water goes to the sewer; the permit sets the limits on volume and quality.'],
+                    ['Chipping', 'Breaking out concrete with a handheld air hammer, for corners and edges the robot cannot reach.'],
+                    ['Rebar', 'Steel reinforcing bars in the slab. Hydrodemolition leaves them in place and clean.'],
+                    ['Whip check', 'A steel cable restraint across a hose coupling, so a hose cannot whip around if a connection fails.'],
+                ];
 
-// ---- content: equipment / parts, in process order ----
-const PARTS = {
-  paint: {n:1, name:'Layout paint',
-    what:'The demolition area is outlined on top of the slab in green spray paint. The same outline is then transferred to the underside of the slab in red.',
-    why:'The crew on the floor below can see exactly where water and debris will come through, so shoring, containment and the exclusion zone go in the right place.',
-    links:['Shoring and containment are laid out from the red outline below']},
-  shoring: {n:2, name:'Shoring',
-    what:'Temporary posts and beams on the floor below, laid out to the engineer\'s design. They usually stand inside the containment area, around the opening.',
-    why:'Removing concrete weakens the slab, and the robot adds weight. Shoring carries that load until the repair has been placed and cured.',
-    links:['Engineer\'s shoring plan','Sits on the floor below the demo area'],
-    safety:'Never remove or adjust shoring without engineer sign-off. Inspect it daily.'},
-  walls: {n:3, name:'Containment walls and seals',
-    what:'Wooden retaining walls built on the floor below, directly under the red outline, and sealed to the floor with silicone. Every floor drain inside or near the containment is plugged before cutting starts.',
-    why:'They catch the water, slurry and debris coming through the slab, so it can be pumped out instead of flooding the floor. Plugged drains keep alkaline slurry out of the building\'s drain lines and the storm or sewer system.',
-    links:['Membrane pumps pull slurry out','Larger debris is scooped out for haul-off','Floor drains plugged'],
-    safety:'Check seals and drain plugs before cutting and between shifts. A leak or open drain sends alkaline slurry where it should not go.'},
-  supply: {n:4, name:'Water supply and backflow monitoring',
-    what:'Clean water from a hydrant or building connection feeds the UHP pumps and the washdown hose. A backflow preventer with monitoring sits between the source and our equipment.',
-    why:'It makes sure we never push water back into the system we are pulling from, which protects the owner\'s or city\'s drinking water.',
-    links:['Hydrant or building supply (in)','UHP pumps and washdown pump (out)'],
-    safety:'Confirm the backflow device is tested and tagged before connecting.'},
-  washpump: {n:6, name:'Washdown pump',
-    what:'A smaller, high-volume, low-pressure pump that feeds the big washdown hose. It is separate from the UHP pumps.',
-    why:'Washdown needs a lot of water at low pressure to move material, not cutting pressure, so the UHP system stays dedicated to the robot.',
-    links:['Water supply through the backflow preventer (in)','Washdown hose on the demo floor (out)']},
-  uhp: {n:5, name:'UHP water pumps',
-    what:'Diesel-driven pump units that take clean water from the supply and raise it to ultra-high pressure (UHP), then send it to the robot through rated high-pressure hose.',
-    why:'That pressure is what does the cutting. Every hose, fitting and restraint between the pump and the robot has to be rated for it.',
-    links:['Water supply through the backflow preventer (in)','Robot, through UHP hose (out)'],
-    safety:'A UHP leak or jet can inject water through skin. Never touch or step on a pressurized hose. Depressurize before any connection is touched.'},
-  compressor: {n:7, name:'Air compressors',
-    what:'Supply compressed air to the chipping hammers on the demo floor and to the membrane pumps on the floor below.',
-    why:'Air-powered tools and pumps are safe to run in water and slurry, with no electric motors in the wet zone.',
-    links:['Chipping hammers (upper floor)','Membrane pumps (floor below)'],
-    safety:'Whip checks on every air hose coupling. Bleed pressure before disconnecting.'},
-  robot: {n:8, name:'Hydrodemolition robot',
-    what:'A remote-controlled machine on rubber tires with the UHP lance on a feed beam at its front. The lance sweeps side to side across the marked area while the robot backs away from the cut, so it always sits on sound concrete.',
-    why:'Water removes weak or damaged concrete to a set depth without the micro-cracking jackhammers cause. On a partial-depth repair it cuts to just below the top layer of rebar and leaves that rebar clean and in place, ready for new concrete.',
-    links:['UHP pumps, through the high-pressure hose'],
-    safety:'Run from outside the exclusion zone. Nobody in the cutting area, or on the floor directly below, while the jet is live.'},
-  washdown: {n:9, name:'Washdown hose',
-    what:'A large, low-pressure hose the crew uses to flush cut material and slurry out of the cut and off the slab.',
-    why:'Keeps the cut surface clean so the operator can see progress, and makes sure debris ends up inside containment.',
-    links:['Washdown pump'],
-    safety:'Only once the robot has stopped. Watch your footing at the open edge.'},
-  chipping: {n:10, name:'Chipping',
-    what:'Air-powered chipping hammers clean up corners, edges and spots the robot cannot reach.',
-    why:'Gives a clean, sound edge all the way around the repair.',
-    links:['Air compressor'],
-    safety:'Hearing, eye and face protection. Watch your footing at the open edge.'},
-  membrane: {n:11, name:'Membrane pumps',
-    what:'Air-operated double-diaphragm pumps on a hand truck, set inside the containment area, that suck slurry out of containment and push it to the settling tanks.',
-    why:'They can pump thick, gritty slurry and run dry without damage. Being air-powered, they are safe in standing water.',
-    links:['Containment (in)','Air compressor (power)','Settling tanks (out)']},
-  tanks: {n:12, name:'Settling tanks',
-    what:'A train of containers. Slurry enters the first one. Solids sink to the bottom while water overflows into the next container, getting cleaner each time.',
-    why:'Most of the concrete fines are caught here instead of going to the sewer. Settled solids are dug out and hauled away.',
-    links:['Membrane pumps (in)','CO₂ treatment tank (out)']},
-  treat: {n:13, name:'CO₂ treatment and pH adjustment',
-    what:'The last container. CO₂ is bubbled into the water to bring down its alkalinity (pH), and a demulsifying treatment helps the last fines drop out. A PLC controller on a stand beside the tank reads the pH and doses the CO₂ automatically to keep it in range.',
-    why:'Water that has touched concrete is strongly alkaline. The sewer permit limits pH, so it has to be brought back into range before discharge.',
-    links:['Settling tanks (in)','CO₂ cylinders, dosed by the PLC controller','Discharge meter (out)'],
-    safety:'CO₂ displaces oxygen. Keep cylinders secured and upright, and the area ventilated.'},
-  meter: {n:14, name:'Discharge meter',
-    what:'Measures how much treated water we send to the sewer.',
-    why:'The discharge permit sets limits and requires records. The meter reading is our proof of what went in.',
-    links:['CO₂ treatment tank (in)','Sanitary sewer (out)']},
-  haul: {n:15, name:'Debris removal',
-    what:'Larger chunks that will not pump are scooped out of containment with a skid steer or similar equipment and hauled off site. Settled solids from the tanks go too.',
-    why:'Keeps containment clear and stops the pumps from clogging.',
-    links:['Containment area','Haul-off bins or trucks'],
-    safety:'Use a spotter when equipment works near shoring and containment walls.'},
-};
-
-// ---- steps: whole site always visible; each step highlights and animates its part ----
-// cut: none | run (animates the cut) | sweep (cutting in progress, for the overview) | done
-const FLOW_IDS=['supply','wash','uhp','airchip','airpump','sludge','overflow','co2','discharge'];
-const STEPS = [
-  {chip:'Overview', title:'The whole operation', focus:'all', flows:FLOW_IDS, cut:'sweep', tanks:true, scoop:true, wash:true, x:null,
-   text:'Everything running at once. Clean water comes in on the left and is pumped to ultra-high pressure for the robot cutting the upper slab. Slurry and debris drop into containment on the floor below, get pumped through settling and treatment on the right, and go out through the meter to the sewer. Step through the job, or tap any numbered part.'},
-  {chip:'Mark', brief:'Outline the repair in green on top and transfer it to the underside in red. Confirm conduit and post-tension tendons first.', title:'Mark the demo area', focus:['paint'], flows:[], cut:'none', x:670,
-   text:'The repair areas are outlined on top of the slab in green spray paint. The same outline is then transferred to the underside in red, so the crew on the floor below knows exactly where water and debris will come through.',
-   safety:'Confirm what is embedded in the slab (conduit, post-tension tendons) before the layout is final.'},
-  {chip:'Shore', brief:'Shore the floor below to the engineer\'s plan before any removal. Never adjust it without sign-off.', title:'Shore the floor below', focus:['shoring','paint'], flows:[], cut:'none', x:670,
-   text:'Shoring goes in on the floor below to the engineer\'s plan, before any concrete is removed, usually inside the area that will be contained. It carries the slab and the robot while the slab is weakened, and stays until the engineer releases it.',
-   safety:'Never remove or adjust shoring without engineer sign-off.'},
-  {chip:'Contain', brief:'Build sealed wooden walls under the red outline and plug every floor drain. Check seals and plugs before cutting.', title:'Build containment', focus:['walls','paint'], flows:[], cut:'none', x:670,
-   text:'Wooden retaining walls are built on the floor below, around the red outline and the shoring, and sealed to the floor with silicone. Any floor drains inside or near the area are plugged. The walls catch the slurry and debris that come through the slab.',
-   safety:'Check every seal and drain plug before cutting. Leaks or open drains send alkaline slurry across the floor and into the drain system.'},
-  {chip:'Connect', brief:'Water through a tested backflow preventer to the UHP and washdown pumps; stage compressors, tanks, treatment and meter. Whip checks on every coupling.', title:'Connect water and air', focus:['supply','uhp','washpump','compressor','tanks','treat','meter'], flows:['supply'], cut:'none', x:200,
-   text:'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps and the smaller washdown pump. Compressors are set up for the chippers and membrane pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
-   safety:'Inspect every hose and fitting and fit whip checks on all couplings. Test and tag the backflow device.'},
-  {chip:'Cut', brief:'The robot cuts to partial depth, just below the top layer of rebar, backing away from the cut. Exclusion zones above and below while the jet is live.', title:'Cut with the robot', focus:['robot','uhp','supply'], flows:['supply','uhp'], cut:'run', excl:true, x:640,
-   text:'The UHP pumps send ultra-high-pressure water to the robot. The lance on its front sweeps side to side across the marked area while the robot backs away from the cut, removing concrete to partial depth: about halfway through the slab, just below the top layer of rebar, which is left clean and in place. Water and slurry are collected in containment on the floor below.',
-   safety:'Exclusion zones around the robot and on the floor below. Nobody under or near the cut while the jet is live. A UHP jet or hose leak can inject water through skin.'},
-  {chip:'Wash & chip', brief:'Flush the cut with the washdown hose and chip what the robot can\'t reach. Only after the robot has stopped.', title:'Wash down and chip', focus:['washdown','washpump','chipping','compressor'], flows:['supply','wash','airchip'], cut:'done', wash:true, x:760,
-   text:'The crew uses the big washdown hose, fed by its own high-volume pump, to flush cut material and slurry out of the cut and off the slab. Air-powered chipping hammers clean up corners and spots the robot cannot reach.',
-   safety:'Only once the robot has stopped. Hearing, eye and face protection; watch your footing at the open edge.'},
-  {chip:'Pump', brief:'Air-driven membrane pumps move slurry from containment to the settling tanks, where solids settle out.', title:'Pump to the settling tanks', focus:['walls','membrane','compressor','tanks'], flows:['airpump','sludge','overflow'], cut:'done', tanks:true, x:860,
-   text:'Membrane pumps, driven by compressed air, pull slurry out of containment and send it to the settling tanks. Solids sink to the bottom while water overflows from one container to the next, getting cleaner each time.'},
-  {chip:'Treat', brief:'CO₂, dosed by the PLC, brings the pH into range; treated water goes through the meter to the sewer. Stay within the permit.', title:'Treat and discharge', focus:['treat','meter','tanks'], flows:['overflow','co2','discharge'], cut:'done', tanks:true, x:1170,
-   text:'The last container is treated: CO₂ brings down the water\'s high alkalinity (pH), and a demulsifying treatment helps the last fines drop out. Treated water passes through the discharge meter into the sewer, so there is a record of everything that went in.',
-   safety:'Stay within the discharge permit. Keep CO₂ cylinders secured and the area ventilated.'},
-  {chip:'Haul', brief:'Scoop out larger debris and settled solids and haul them off. Use a spotter near shoring and walls.', title:'Haul away debris', focus:['haul','walls'], flows:[], cut:'done', tanks:true, scoop:true, x:500,
-   text:'Larger debris that will not pump is scooped out of containment with a skid steer or similar equipment and hauled away. Settled solids are dug out of the tanks and hauled off too.',
-   safety:'Use a spotter when equipment works near shoring and containment walls.'},
-];
-
-const GLOSSARY = [
-  ['Hydrodemolition','Removing concrete with an ultra-high-pressure water jet. It takes out damaged or weak concrete, leaves sound concrete and rebar in place, and leaves a rough surface that new concrete bonds to well.'],
-  ['UHP (ultra-high pressure)','The pressure class of the pumps, hoses and fittings that feed the robot. Far beyond a pressure washer; treat every UHP line as able to cause injury.'],
-  ['Robot','The remote-controlled machine that carries the UHP lance on its front and backs away from the cut.'],
-  ['Partial-depth removal','Cutting concrete out only to a set depth, usually just below the top layer of rebar, instead of all the way through the slab.'],
-  ['Lance','The nozzle assembly on the front of the robot that sweeps side to side across the cut.'],
-  ['Exclusion zone','An area nobody enters while the jet is live: around the robot, and on the floor directly below the cut.'],
-  ['Shoring','Temporary supports under a slab, designed by an engineer, that carry load while the slab is weakened.'],
-  ['Containment','The sealed walls on the floor below that catch water, slurry and debris.'],
-  ['Drain plug','An inflatable or mechanical plug set in a floor drain so slurry cannot get into the building\'s drain lines or the storm or sewer system.'],
-  ['Slurry','The mix of water, concrete fines and small debris produced by cutting.'],
-  ['Fines','Very small concrete particles suspended in the water. They settle slowly.'],
-  ['Membrane (diaphragm) pump','An air-powered pump that moves thick slurry and can run dry without damage.'],
-  ['Settling tank','A container where solids sink out of the water before it moves on.'],
-  ['pH / alkalinity','How basic the water is. Water from concrete is strongly alkaline (high pH) and has to be brought into the permit range before discharge.'],
-  ['CO₂ treatment','Bubbling carbon dioxide into the water to lower its pH.'],
-  ['PLC controller','The control box on the treatment tank. It reads the water\'s pH and opens or closes the CO₂ supply automatically.'],
-  ['Demulsifier','A treatment that breaks up suspended fines so they drop out of the water.'],
-  ['Backflow preventer','A valve assembly that stops water from flowing back into the supply it came from.'],
-  ['Discharge meter / permit','The meter records how much water goes to the sewer; the permit sets the limits on volume and quality.'],
-  ['Chipping','Breaking out concrete with a handheld air hammer, for corners and edges the robot cannot reach.'],
-  ['Rebar','Steel reinforcing bars in the slab. Hydrodemolition leaves them in place and clean.'],
-  ['Whip check','A steel cable restraint across a hose coupling, so a hose cannot whip around if a connection fails.'],
-];
-
-// ---- step bar, parts list, glossary, handout (text first, so a drawing problem can never blank them) ----
-$('steps').innerHTML=STEPS.map((s,i)=>`<li><button type="button" data-i="${i}">${i?`<b>${i}</b>`:''}${esc(s.chip)}</button></li>`).join('');
+                // ---- step bar, parts list, glossary, handout (text first, so a drawing problem can never blank them) ----
+                $('steps').innerHTML = STEPS.map((s, i) => `<li><button type="button" data-i="${i}">${i?`<b>${i}</b>`:''}${esc(s.chip)}</button></li>`).join('');
 $('steps').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) setStep(+b.dataset.i);});
 const ORDER=Object.keys(PARTS).sort((a,b)=>PARTS[a].n-PARTS[b].n);
 $('parts').innerHTML=ORDER.map(k=>`<li><button type="button" data-part="${k}"><span class="num">${PARTS[k].n}</span>${esc(PARTS[k].name)}</button></li>`).join('');
@@ -928,6 +1800,7 @@ const m=location.hash.match(/step=(\d+)/);
 setStep(m?+m[1]:0,true);
 requestAnimationFrame(tick);
 })();
-</script>
+    </script>
 </body>
+
 </html>
