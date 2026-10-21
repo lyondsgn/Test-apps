@@ -1012,7 +1012,7 @@
             <summary>
                 <h2>Glossary</h2>
             </summary>
-            <dl class="gloss" id="gloss"></dl>
+            <dl class="gloss" id="gloss-list"></dl>
         </details>
     </div>
 
@@ -1308,7 +1308,7 @@ $('steps').addEventListener('click',e=>{const b=e.target.closest('button'); if(b
 const ORDER=Object.keys(PARTS).sort((a,b)=>PARTS[a].n-PARTS[b].n);
 $('parts').innerHTML=ORDER.map(k=>`<li><button type="button" data-part="${k}"><span class="num">${PARTS[k].n}</span>${esc(PARTS[k].name)}</button></li>`).join('');
 $('parts').addEventListener('click',e=>{const b=e.target.closest('button'); if(b) openPart(b.dataset.part);});
-$('gloss').innerHTML=GLOSSARY.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('');
+$('gloss-list').innerHTML=GLOSSARY.map(([t,d])=>`<div><dt>${esc(t)}</dt><dd>${esc(d)}</dd></div>`).join('');
 // one-page printout: short line per step (with its key safety point) and a numbered key to the diagram
 $('handout').innerHTML=
   `<h2>Process, step by step</h2><ol class="h-steps">${STEPS.slice(1).map(s=>`<li><b>${esc(s.title)}.</b> ${esc(s.brief)}</li>`).join('')}</ol>`+
@@ -1336,7 +1336,7 @@ function box(par,x,y,w,h,fill,d=dep(.45),gloss=true){
   return g;
 }
 const R=$('root'), L={};
-['ground','backhose','lower','yard','yhose','cols','slab','hole','paint','tophose','upper','excl','debris','labels','hits'].forEach(k=>L[k]=el('g',{id:'L-'+k},R));
+['ground','backhose','cback','cfloor','lower','lowhose','yard','yhose','cols','slab','hole','paint','tophose','upper','excl','debris','labels','hits'].forEach(k=>L[k]=el('g',{id:'L-'+k},R));
 const partG={};
 function part(k,layer){ const g=el('g',{class:'part','data-part':k},L[layer]); (partG[k]=partG[k]||[]).push(g); return g; }
 function label(k,x,y,text,anchor='start'){
@@ -1367,9 +1367,18 @@ el('text',{class:'floorlbl',x:440,y:352},L.ground).textContent='FLOOR BELOW';
 // leftmost riser, so no hose crosses another. On the slab each hose keeps its own depth lane.
 const RW=368, RU=374, RA=380, LANE={uhp:.35, air:.82, wash:.97};
 const CHIP=at(700,.95,300), WASH=at(782,.05,300), PUMP=at(820,.3,560);
+// The membrane pump stands inside containment, so its hoses are split by depth: the air line comes up behind the
+// left wall (hidden), over its top, along the back of the containment floor (behind the shoring posts) and into
+// the left of the pump; the suction hose lies on the containment floor
+// (behind the shoring posts); the discharge rises from the pump and crosses above the right wall to tank 1.
+// A piece with 'with' animates together with that flow.
 const FLOWS=[
-  {id:'airpump', kind:'air',     w:4, layer:'backhose', d:path([[346,542],[372,542],at(400,.9,560),at(820,.9,560),[PUMP[0]+4,PUMP[1]-26]])},
-  {id:'sludge',  kind:'sludge',  w:5, layer:'backhose', d:path([at(770,.4,552),at(770,.4,486),[PUMP[0]-20,486],[PUMP[0]-20,PUMP[1]-10]])+' '+path([[PUMP[0],PUMP[1]-58],[PUMP[0],476],[910,476],[910,462],[948,458]])},
+  {id:'airpump', kind:'air',     w:4, layer:'backhose', d:path([[346,542],[372,542],at(400,.78,560),at(530,.78,560),at(530,.78,496)])},
+  {id:'airpump2',kind:'air',     w:4, layer:'lowhose',  with:'airpump', d:path([at(530,.78,496),at(552,.78,496),at(552,.78,558)])},
+  {id:'airpump3',kind:'air',     w:4, layer:'cfloor',   with:'airpump', d:path([at(552,.78,558),at(775,.78,558)])},
+  {id:'airpump4',kind:'air',     w:4, layer:'lowhose',  with:'airpump', d:path([at(775,.78,558),[PUMP[0]-11,PUMP[1]-28]])},
+  {id:'sludge',  kind:'sludge',  w:5, layer:'cfloor',   d:path([at(690,.5,557),[PUMP[0]-26,PUMP[1]-4],[PUMP[0]-12,PUMP[1]-12]])},
+  {id:'sludge2', kind:'sludge',  w:5, layer:'lowhose',  with:'sludge', d:path([[PUMP[0],PUMP[1]-58],[PUMP[0],452],[910,452],[910,458],[948,458]])},
   {id:'supply',  kind:'water',   w:5, layer:'yhose',    d:'M40,546 L152,546'},
   {id:'overflow',kind:'water',   w:5, layer:'yhose',    d:'M1012,488 L1022,488 M1104,488 L1114,488'},
   {id:'co2',     kind:'co2',     w:3, layer:'yhose',    d:'M1215,492 L1215,482 L1180,482 L1180,520'},
@@ -1383,7 +1392,7 @@ for(const f of FLOWS){
   const base=el('path',{d:f.d,class:'hose','stroke-width':f.w+3},L[f.layer]);
   const shine=el('path',{d:f.d,class:'shine','stroke-width':1.4,transform:'translate(-.8,-1)'},L[f.layer]);
   const ov=el('path',{d:f.d,class:'flow k-'+f.kind,'stroke-width':f.w-1},L[f.layer]);
-  flowEls[f.id]={base,shine,ov};
+  flowEls[f.id]={base,shine,ov,key:f.with||f.id};
 }
 
 // ---- 3 containment, with 2 shoring standing inside it ----
@@ -1391,7 +1400,7 @@ for(const f of FLOWS){
 // so the floor and drain plug stay visible; the slurry hose shows it being pumped out.
 // Posts sit under the edges of the opening, well inside the walls, so no wall and post ever overlap.
 const CW=[540,870], CV=.85, CH=58; // wide enough for the membrane pump to stand inside
-face(part('walls','lower'),[at(CW[0],CV,560-CH),at(CW[1]+6,CV,560-CH),at(CW[1]+6,CV,560),at(CW[0],CV,560)],'var(--wood)','shd');
+face(part('walls','cback'),[at(CW[0],CV,560-CH),at(CW[1]+6,CV,560-CH),at(CW[1]+6,CV,560),at(CW[0],CV,560)],'var(--wood)','shd');
 { const g=part('shoring','lower');
   for(const v of [.65,.15]) for(const x of [590,750]){
     const [px,py]=at(x,v,560), [,ty]=at(x,v,330);
@@ -1706,7 +1715,7 @@ function setStep(i,instant){
   stepIdx=Math.max(0,Math.min(STEPS.length-1,i));
   const s=S(), all=s.focus==='all';
   for(const k in partG) partG[k].forEach(g=>g.classList.toggle('dim',!all&&!s.focus.includes(k)));
-  for(const id in flowEls){ const on=s.flows.includes(id), f=flowEls[id]; f.ov.classList.toggle('on',on); f.base.classList.toggle('dimh',!all&&!on); f.shine.classList.toggle('dimh',!all&&!on); }
+  for(const id in flowEls){ const f=flowEls[id], on=s.flows.includes(f.key); f.ov.classList.toggle('on',on); f.base.classList.toggle('dimh',!all&&!on); f.shine.classList.toggle('dimh',!all&&!on); }
   $('chip').classList.toggle('on',s.flows.includes('airchip'));
   $('spray').classList.toggle('on',!!s.wash);
   $('bubbles').classList.toggle('on',s.flows.includes('co2'));
