@@ -1069,7 +1069,7 @@
                         name: 'Containment walls and seals',
                         what: 'Wooden retaining walls built on the floor below, directly under the red outline, and sealed to the floor with silicone. Every floor drain inside or near the containment is plugged before cutting starts.',
                         why: 'They catch the water, slurry and debris coming through the slab, so it can be pumped out instead of flooding the floor. Plugged drains keep alkaline slurry out of the building\'s drain lines and the storm or sewer system.',
-                        links: ['Membrane pumps pull slurry out', 'Larger debris is scooped out for haul-off', 'Floor drains plugged'],
+                        links: ['diaphragm pumps pull slurry out', 'Larger debris is scooped out for haul-off', 'Floor drains plugged'],
                         safety: 'Check seals and drain plugs before cutting and between shifts. A leak or open drain sends alkaline slurry where it should not go.'
                     },
                     supply: {
@@ -1098,9 +1098,9 @@
                     compressor: {
                         n: 7,
                         name: 'Air compressors',
-                        what: 'Supply compressed air to the chipping hammers on the demo floor and to the membrane pumps on the floor below.',
+                        what: 'Supply compressed air to the chipping hammers on the demo floor and to the diaphragm pumps on the floor below.',
                         why: 'Air-powered tools and pumps are safe to run in water and slurry, with no electric motors in the wet zone.',
-                        links: ['Chipping hammers (upper floor)', 'Membrane pumps (floor below)'],
+                        links: ['Chipping hammers (upper floor)', 'diaphragm pumps (floor below)'],
                         safety: 'Whip checks on every air hose coupling. Bleed pressure before disconnecting.'
                     },
                     robot: {
@@ -1127,9 +1127,9 @@
                         links: ['Air compressor'],
                         safety: 'Hearing, eye and face protection. Watch your footing at the open edge.'
                     },
-                    membrane: {
+                    diaphragm: {
                         n: 11,
-                        name: 'Membrane pumps',
+                        name: 'diaphragm pumps',
                         what: 'Air-operated double-diaphragm pumps on a hand truck, set inside the containment area, that suck slurry out of containment and push it to the settling tanks.',
                         why: 'They can pump thick, gritty slurry and run dry without damage. Being air-powered, they are safe in standing water.',
                         links: ['Containment (in)', 'Air compressor (power)', 'Settling tanks (out)']
@@ -1139,7 +1139,7 @@
                         name: 'Settling tanks',
                         what: 'A train of containers. Slurry enters the first one. Solids sink to the bottom while water overflows into the next container, getting cleaner each time.',
                         why: 'Most of the concrete fines are caught here instead of going to the sewer. Settled solids are dug out and hauled away.',
-                        links: ['Membrane pumps (in)', 'CO₂ treatment tank (out)']
+                        links: ['diaphragm pumps (in)', 'CO₂ treatment tank (out)']
                     },
                     treat: {
                         n: 13,
@@ -1218,7 +1218,7 @@
                     flows: ['supply'],
                     cut: 'none',
                     x: 200,
-                    text: 'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps and the smaller washdown pump. Compressors are set up for the chippers and membrane pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
+                    text: 'Clean water comes from the hydrant or building supply through a backflow preventer with monitoring, then to the UHP pumps and the smaller washdown pump. Compressors are set up for the chippers and diaphragm pumps. Settling tanks, treatment and the discharge meter are staged between the job and the sewer.',
                     safety: 'Inspect every hose and fitting and fit whip checks on all couplings. Test and tag the backflow device.'
                 }, {
                     chip: 'Cut',
@@ -1244,14 +1244,14 @@
                     safety: 'Only once the robot has stopped. Hearing, eye and face protection; watch your footing at the open edge.'
                 }, {
                     chip: 'Pump',
-                    brief: 'Air-driven membrane pumps move slurry from containment to the settling tanks, where solids settle out.',
+                    brief: 'Air-driven diaphragm pumps move slurry from containment to the settling tanks, where solids settle out.',
                     title: 'Pump to the settling tanks',
-                    focus: ['walls', 'membrane', 'compressor', 'tanks'],
+                    focus: ['walls', 'diaphragm', 'compressor', 'tanks'],
                     flows: ['airpump', 'sludge', 'overflow'],
                     cut: 'done',
                     tanks: true,
                     x: 860,
-                    text: 'Membrane pumps, driven by compressed air, pull slurry out of containment and send it to the settling tanks. Solids sink to the bottom while water overflows from one container to the next, getting cleaner each time.'
+                    text: 'diaphragm pumps, driven by compressed air, pull slurry out of containment and send it to the settling tanks. Solids sink to the bottom while water overflows from one container to the next, getting cleaner each time.'
                 }, {
                     chip: 'Treat',
                     brief: 'CO₂, dosed by a controller, brings the pH into range; treated water goes through the meter to the sewer. Stay within the permit.',
@@ -1289,7 +1289,7 @@
                     ['Drain plug', 'An inflatable or mechanical plug set in a floor drain so slurry cannot get into the building\'s drain lines or the storm or sewer system.'],
                     ['Slurry', 'The mix of water, concrete fines and small debris produced by cutting.'],
                     ['Fines', 'Very small concrete particles suspended in the water. They settle slowly.'],
-                    ['Membrane (diaphragm) pump', 'An air-powered pump that moves thick slurry and can run dry without damage.'],
+                    ['diaphragm pump', 'An air-powered pump that moves thick slurry and can run dry without damage.'],
                     ['Settling tank', 'A container where solids sink out of the water before it moves on.'],
                     ['pH / alkalinity', 'How basic the water is. Water from concrete is strongly alkaline (high pH) and has to be brought into the permit range before discharge.'],
                     ['CO₂ treatment', 'Bubbling carbon dioxide into the water to lower its pH.'],
@@ -1367,7 +1367,7 @@ el('text',{class:'floorlbl',x:440,y:352},L.ground).textContent='FLOOR BELOW';
 // leftmost riser, so no hose crosses another. On the slab each hose keeps its own depth lane.
 const RW=368, RU=374, RA=380, LANE={uhp:.35, air:.82, wash:.97};
 const CHIP=at(700,.95,300), WASH=at(782,.05,300), PUMP=at(820,.3,560);
-// The membrane pump stands inside containment, so its hoses are split by depth: the air line comes up behind the
+// The diaphragm pump stands inside containment, so its hoses are split by depth: the air line comes up behind the
 // left wall (hidden), over its top, along the back of the containment floor (behind the shoring posts) and into
 // the left of the pump; the suction hose lies on the containment floor
 // (behind the shoring posts); the discharge rises from the pump and crosses above the right wall to tank 1.
@@ -1399,7 +1399,7 @@ for(const f of FLOWS){
 // draw order: back wall, shoring posts, plugged drain, then the side walls. The slurry itself is not drawn,
 // so the floor and drain plug stay visible; the slurry hose shows it being pumped out.
 // Posts sit under the edges of the opening, well inside the walls, so no wall and post ever overlap.
-const CW=[540,870], CV=.85, CH=58; // wide enough for the membrane pump to stand inside
+const CW=[540,870], CV=.85, CH=58; // wide enough for the diaphragm pump to stand inside
 face(part('walls','cback'),[at(CW[0],CV,560-CH),at(CW[1]+6,CV,560-CH),at(CW[1]+6,CV,560),at(CW[0],CV,560)],'var(--wood)','shd');
 { const g=part('shoring','lower');
   for(const v of [.65,.15]) for(const x of [590,750]){
@@ -1437,8 +1437,8 @@ label('walls',560,452,'CONTAINMENT');
 }
 label('haul',420,474,'DEBRIS HAUL');
 
-// ---- 11 membrane pump: air-operated double-diaphragm pump on a hand truck ----
-{ const g=el('g',{transform:`translate(${PUMP[0].toFixed(1)},${PUMP[1].toFixed(1)})`},part('membrane','lower'));
+// ---- 11 diaphragm pump: air-operated double-diaphragm pump on a hand truck ----
+{ const g=el('g',{transform:`translate(${PUMP[0].toFixed(1)},${PUMP[1].toFixed(1)})`},part('diaphragm','lower'));
   const red='var(--paint-r)';
   el('path',{d:'M-15,-2 L-11,-84 M15,-2 L11,-84 M-11,-84 Q0,-94 11,-84 M-14,-34 H14 M-12,-62 H12',fill:'none',stroke:red,'stroke-width':4,'stroke-linecap':'round','stroke-linejoin':'round'},g);
   el('rect',{x:-22,y:-5,width:44,height:5,fill:red,class:'face'},g);
@@ -1450,7 +1450,7 @@ label('haul',420,474,'DEBRIS HAUL');
   el('rect',{x:-5,y:-40,width:10,height:22,rx:2,fill:'var(--steel)',class:'face'},g);
   el('circle',{cx:-11,cy:-28,r:11,fill:'url(#gloss)'},g); el('circle',{cx:11,cy:-28,r:11,fill:'url(#gloss)'},g);
 }
-label('membrane',852,430,'MEMBRANE PUMP','end');
+label('diaphragm',852,430,'DIAPHRAGM PUMP','end');
 
 // ---- exclusion zones ----
 { const g=el('g',{id:'excl',opacity:0,'pointer-events':'none'},L.excl);
